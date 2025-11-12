@@ -1,288 +1,261 @@
-# EduVerse ERP - India's Advanced School Management SaaS
+# EduVerse ERP - School Management System
 
-A comprehensive school management system designed specifically for Indian educational institutions with multi-tenant architecture and compliance with Indian education laws.
+A comprehensive School Management SaaS solution built with Next.js, NestJS, and PostgreSQL.
 
 ## 🚀 Features
 
-### 🏫 School Onboarding System
-- **4-Step Registration Wizard** with validation
-- **Indian Education Law Compliance** fields
-- **Document Upload** for certificates and compliance
-- **Package Selection** (Basic, Standard, Premium)
-- **Registration Receipt** generation
-- **Approval Workflow** for super admin
+### Student Management
+- ✅ Complete student enrollment with photo upload
+- ✅ Comprehensive student profiles with all details
+- ✅ Bulk student upload via Excel templates
+- ✅ Advanced filtering by school, branch, class, and status
+- ✅ Student photo management
+- ✅ Parent and guardian information tracking
+- ✅ Medical conditions and emergency contacts
+- ✅ Transport and hostel requirements
 
-### 📊 Super Admin Dashboard
-- **Platform Overview** with real-time statistics
-- **School Management** with advanced filtering
-- **Pagination** for large datasets
-- **Compact UI** with minimal scrolling
-- **Revenue Analytics** and reporting
-- **User Management** across all schools
+### Master Data Management
+- ✅ Schools and branches management
+- ✅ Academic years configuration
+- ✅ Classes and sections setup
+- ✅ Subjects management
+- ✅ Fee structures configuration
+- ✅ Teachers management with bulk upload
 
-### 💰 Pricing Packages
+### System Features
+- ✅ Multi-tenant architecture
+- ✅ Role-based access control
+- ✅ Responsive design with modern UI
+- ✅ Real-time data updates
+- ✅ Comprehensive search and filtering
+- ✅ Data export capabilities
+- ✅ Photo upload and management
 
-#### Basic Plan
-- **Free up to 150 students**
-- **₹5 per student** after limit
-- Core features: Student Management, Attendance, Fee Collection
-
-#### Standard Plan  
-- **₹2,000/month + ₹3/student** (200 free)
-- All Basic features plus Library, Exams, Parent Portal
-
-#### Premium Plan
-- **₹5,000/month + ₹2/student** (300 free)  
-- All Standard features plus Accounting, HR, Transport, Hostel
-
-### 🎨 UI/UX Features
-- **Responsive Design** optimized for all devices
-- **Minimal Spacing** and compact layouts
-- **Smooth Pagination** with navigation controls
-- **Student-Friendly Interface** with clear navigation
-- **Gradient Themes** and modern styling
-- **Minimal Scrolling** except for table pagination
-
-## 🛠 Technical Stack
+## 🛠 Tech Stack
 
 ### Frontend
-- **Next.js 14** with TypeScript
-- **Tailwind CSS** for styling
-- **Shadcn/ui** components
-- **Lucide React** icons
-- **Responsive Design**
+- **Next.js 14** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first CSS framework
+- **Lucide React** - Modern icon library
+- **Custom UI Components** - Reusable component library
 
 ### Backend
-- **NestJS** with TypeScript
-- **PostgreSQL** database
-- **JWT Authentication**
-- **Role-Based Access Control**
-- **Multi-tenant Architecture**
+- **NestJS** - Progressive Node.js framework
+- **TypeScript** - Type-safe backend development
+- **TypeORM** - Object-relational mapping
+- **PostgreSQL** - Robust relational database
+- **Multer** - File upload handling
+- **XLSX** - Excel file processing
 
-### Infrastructure
-- **Docker** containerization
-- **Nginx** reverse proxy
-- **Git** version control
-- **Environment-based** configuration
+## 📁 Project Structure
 
-## 📋 Prerequisites
+```
+eduverse-erp/
+├── frontend/                 # Next.js frontend application
+│   ├── src/
+│   │   ├── app/             # App Router pages
+│   │   │   ├── master/      # Master data management
+│   │   │   │   ├── students/    # Student management
+│   │   │   │   │   ├── add/     # Add student page
+│   │   │   │   │   └── page.tsx # Students list
+│   │   │   │   ├── teachers/    # Teacher management
+│   │   │   │   ├── classes/     # Class management
+│   │   │   │   ├── subjects/    # Subject management
+│   │   │   │   ├── academic-years/ # Academic year management
+│   │   │   │   └── fee-structures/ # Fee structure management
+│   │   │   └── super-admin/ # Super admin features
+│   │   ├── components/      # Reusable UI components
+│   │   ├── hooks/          # Custom React hooks
+│   │   ├── lib/            # Utility libraries and API clients
+│   │   └── types/          # TypeScript type definitions
+│   └── public/             # Static assets
+├── backend/                 # NestJS backend application
+│   ├── src/
+│   │   ├── master/         # Master data module
+│   │   │   ├── entities/   # Database entities
+│   │   │   ├── dto/        # Data transfer objects
+│   │   │   ├── master.controller.ts
+│   │   │   ├── master.service.ts
+│   │   │   └── master.module.ts
+│   │   ├── super-admin/    # Super admin module
+│   │   ├── auth/           # Authentication module
+│   │   └── common/         # Shared utilities
+│   └── uploads/            # File upload storage
+└── docs/                   # Documentation
+```
 
+## 🚀 Getting Started
+
+### Prerequisites
 - Node.js 18+ 
-- PostgreSQL 14+
+- PostgreSQL 12+
 - npm or yarn
-- Git
 
-## 🚀 Quick Start
+### Installation
 
-### 1. Clone Repository
-```bash
-git clone https://github.com/techroverteam-ux/eduverse4U.git
-cd eduverse4U
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/ashokverma-an/eduverse-erp.git
+   cd eduverse-erp
+   ```
+
+2. **Install dependencies**
+   ```bash
+   # Install backend dependencies
+   cd backend
+   npm install
+   
+   # Install frontend dependencies
+   cd ../frontend
+   npm install
+   ```
+
+3. **Database Setup**
+   ```bash
+   # Create PostgreSQL database
+   createdb eduverse
+   
+   # Update backend/.env with your database credentials
+   cp backend/.env.example backend/.env
+   ```
+
+4. **Environment Configuration**
+   
+   **Backend (.env)**
+   ```env
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USERNAME=postgres
+   DB_PASSWORD=your_password
+   DB_NAME=eduverse
+   JWT_SECRET=your_jwt_secret
+   ```
+   
+   **Frontend (.env.local)**
+   ```env
+   NEXT_PUBLIC_API_URL=http://localhost:3001
+   ```
+
+5. **Start the applications**
+   
+   **Backend (Terminal 1)**
+   ```bash
+   cd backend
+   npm run start:dev
+   ```
+   
+   **Frontend (Terminal 2)**
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+6. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:3001
+
+## 📚 API Documentation
+
+### Student Management Endpoints
+
+#### Create Student with Photo
+```http
+POST /master/students/with-photo
+Content-Type: multipart/form-data
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "rollNumber": "001",
+  "photo": [file],
+  // ... other student fields
+}
 ```
 
-### 2. Install Dependencies
-```bash
-# Install root dependencies
-npm install
-
-# Install backend dependencies
-cd backend && npm install
-
-# Install frontend dependencies  
-cd ../frontend && npm install
+#### Get Students
+```http
+GET /master/students?schoolId={schoolId}&branchId={branchId}&classId={classId}&search={search}
 ```
 
-### 3. Database Setup
-```bash
-# Create PostgreSQL database
-createdb eduverse
+#### Bulk Upload Students
+```http
+POST /master/students/bulk-upload
+Content-Type: multipart/form-data
 
-# Run database schema
-psql -d eduverse -f docs/database-schema.sql
+{
+  "file": [excel_file],
+  "schoolId": "school-id"
+}
 ```
 
-### 4. Environment Configuration
-```bash
-# Copy environment files
-cp .env.example .env
-cp backend/.env.example backend/.env
-cp frontend/.env.local.example frontend/.env.local
-
-# Update database credentials in backend/.env
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
-DB_NAME=eduverse
+### Template Downloads
+```http
+GET /master/templates/students    # Download student template
+GET /master/templates/teachers    # Download teacher template
 ```
 
-### 5. Create Super Admin
-```bash
-# Run super admin creation script
-node scripts/create-superadmin-final.js
-```
+## 🎯 Key Features Implemented
 
-### 6. Start Development Servers
-```bash
-# Start both frontend and backend
-npm run dev
+### Student Management
+- **Complete Student Profiles**: All personal, academic, and family information
+- **Photo Upload**: Student photo management with preview
+- **Bulk Operations**: Excel-based bulk student upload
+- **Advanced Search**: Multi-criteria filtering and search
+- **Data Validation**: Comprehensive form validation
+- **Responsive Design**: Works on all device sizes
 
-# Or start individually
-npm run backend:dev  # Backend on :3001
-npm run frontend:dev # Frontend on :3000
-```
+### School-Branch Mapping
+- **Automatic Branch Selection**: Single branch auto-selection
+- **Hierarchical Data**: Proper school → branch → class relationships
+- **Fallback Data**: Demo data when APIs are unavailable
 
-## 🔐 Default Login Credentials
-
-### Super Admin
-- **URL**: http://localhost:3000/login
-- **Email**: superadmin@demo.com
-- **Password**: admin123
-- **Tenant**: platform
-
-## 📱 Key Pages & Features
-
-### Super Admin Portal
-- **Dashboard**: `/super-admin` - Platform overview and statistics
-- **Schools**: `/super-admin/schools` - Manage all schools with pagination
-- **Add School**: `/super-admin/schools/add` - 4-step registration wizard
-- **Success**: `/super-admin/schools/success` - Registration confirmation
-
-### School Registration Flow
-1. **Basic Information** - School details and legal info
-2. **Contact Information** - Principal and admin contacts  
-3. **Address Details** - Complete address with Indian states
-4. **Package Selection** - Choose pricing plan and features
-
-### UI/UX Enhancements
-- **Compact Headers** with essential information only
-- **Minimal Cards** with optimized spacing
-- **Smart Pagination** with page numbers and navigation
-- **Responsive Tables** that work on all screen sizes
-- **Quick Actions** for common tasks
-
-## 🏗 Architecture
-
-### Multi-Tenant Design
-- **Tenant Isolation** - Complete data separation per school
-- **Subdomain Routing** - school.eduverse.com
-- **Role-Based Access** - Super Admin, School Admin, Teacher, Student, Parent
-- **Scalable Infrastructure** - Supports unlimited schools
-
-### Database Schema
-- **Enhanced School Registration** table with Indian compliance
-- **Package Pricing** with flexible billing
-- **Academic Years** and class management
-- **Document Management** for certificates
-- **Audit Trails** for all operations
-
-## 📊 School Management Features
-
-### Registration Process
-- **Document Verification** - Upload and verify certificates
-- **Approval Workflow** - Super admin approval required
-- **Payment Integration** - Package-based billing
-- **Automated Setup** - Database and portal creation
-
-### Compliance Features
-- **Registration Certificate** upload
-- **Affiliation Board** selection (CBSE, ICSE, State Board)
-- **NOC Certificate** management
-- **Fire Safety** and building certificates
-- **Indian State** selection with validation
-
-### Package Management
-- **Flexible Pricing** - Base price + per-student charges
-- **Feature Modules** - Core, Library, Accounting, etc.
-- **Usage Tracking** - Monitor student limits
-- **Billing Automation** - Monthly invoice generation
+### User Experience
+- **Modern UI**: Clean, intuitive interface
+- **Toast Notifications**: Proper user feedback
+- **Loading States**: Smooth user interactions
+- **Error Handling**: Graceful error management
 
 ## 🔧 Development
 
-### Project Structure
-```
-eduverse-erp/
-├── backend/          # NestJS API server
-├── frontend/         # Next.js web application  
-├── docs/            # Documentation and schemas
-├── scripts/         # Database and setup scripts
-├── docker-compose.yml
-└── package.json     # Root package file
-```
+### Adding New Features
+1. Create backend entities in `backend/src/master/entities/`
+2. Add API endpoints in `backend/src/master/master.controller.ts`
+3. Implement business logic in `backend/src/master/master.service.ts`
+4. Create frontend pages in `frontend/src/app/`
+5. Add API client methods in `frontend/src/lib/api/`
 
-### Available Scripts
+### Database Migrations
 ```bash
-npm run dev          # Start both frontend and backend
-npm run build        # Build both applications
-npm run backend:dev  # Start backend only
-npm run frontend:dev # Start frontend only
+cd backend
+npm run migration:generate -- -n MigrationName
+npm run migration:run
 ```
 
-### Database Scripts
-```bash
-node scripts/create-superadmin-final.js  # Create super admin
-node scripts/check-db.js                 # Check database structure
-node scripts/verify-login.js             # Verify login credentials
-```
-
-## 🚀 Deployment
-
-### Docker Deployment
-```bash
-# Build and start containers
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-```
-
-### Manual Deployment
-1. Build applications: `npm run build`
-2. Set production environment variables
-3. Start backend: `cd backend && npm start`
-4. Serve frontend with nginx or similar
-5. Configure reverse proxy
-
-## 🤝 Contributing
+## 📝 Contributing
 
 1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open Pull Request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## 👨‍💻 Author
 
-For support and questions:
-- **Email**: support@eduverse.com
-- **Phone**: +91-1800-123-4567
-- **Documentation**: Check `/docs` folder
-- **Issues**: Create GitHub issue
+**Ashok Verma**
+- GitHub: [@ashokverma-an](https://github.com/ashokverma-an)
+- Email: ashokverma.an.2001@gmail.com
 
-## 🎯 Roadmap
+## 🙏 Acknowledgments
 
-### Phase 1 (Current)
-- ✅ School onboarding system
-- ✅ Super admin dashboard
-- ✅ Package management
-- ✅ Enhanced UI/UX
-
-### Phase 2 (Next)
-- 📅 Academic year management
-- 🏫 Branch management  
-- 👥 Student/teacher onboarding
-- 📊 Advanced analytics
-
-### Phase 3 (Future)
-- 📱 Mobile applications
-- 🔔 Real-time notifications
-- 📈 Advanced reporting
-- 🌐 Multi-language support
+- Built with modern web technologies
+- Designed for scalability and maintainability
+- Focus on user experience and performance
 
 ---
 
-**Built with ❤️ for Indian Education System**
+**EduVerse ERP** - Transforming Education Management 🎓
