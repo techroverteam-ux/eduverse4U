@@ -1,57 +1,122 @@
 "use client"
 
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useNavigation } from "@/hooks/useNavigation"
+import { superAdminAPI } from "@/lib/api/super-admin"
 import { 
   Building2, Users, IndianRupee, TrendingUp, 
-  Globe, Activity, ArrowUp, ArrowDown, Crown, Zap 
+  Globe, Activity, ArrowUp, ArrowDown, Crown, Zap, School, AlertCircle 
 } from "lucide-react"
 
-const platformStats = [
-  {
-    title: "Total Schools",
-    value: "1,247",
-    change: "+23%",
-    trend: "up",
-    icon: Building2,
-    color: "text-blue-600"
-  },
-  {
-    title: "Active Users",
-    value: "89,432",
-    change: "+15%",
-    trend: "up", 
-    icon: Users,
-    color: "text-green-600"
-  },
-  {
-    title: "Monthly Revenue",
-    value: "₹45.2L",
-    change: "+18%",
-    trend: "up",
-    icon: IndianRupee,
-    color: "text-purple-600"
-  },
-  {
-    title: "Platform Uptime",
-    value: "99.9%",
-    change: "+0.1%",
-    trend: "up",
-    icon: Activity,
-    color: "text-orange-600"
+interface DashboardData {
+  analytics: {
+    overview: {
+      totalSchools: number
+      activeSchools: number
+      totalUsers: number
+      totalRevenue: number
+      monthlyRevenue: number
+    }
+    usersByRole: Array<{ role: string; count: number }>
+    revenueByPlan: Array<{ plan: string; schools: number; revenue: number }>
   }
-]
-
-const recentSchools = [
-  { name: "Delhi Public School", location: "Mumbai", students: 2847, status: "Active", plan: "Premium" },
-  { name: "Ryan International", location: "Delhi", students: 1923, status: "Active", plan: "Standard" },
-  { name: "Kendriya Vidyalaya", location: "Bangalore", students: 3421, status: "Active", plan: "Premium" },
-  { name: "DAV Public School", location: "Chennai", students: 1567, status: "Trial", plan: "Trial" }
-]
+  recentSchools: Array<{
+    id: string
+    name: string
+    location: string
+    status: string
+    students: number
+    selectedPackage: string
+    joinedDate: string
+  }>
+}
 
 export default function SuperAdminDashboard() {
   const navigation = useNavigation()
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true)
+        const data = await superAdminAPI.getDashboardOverview()
+        setDashboardData(data)
+        setError(null)
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err)
+        setError('Failed to load dashboard data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-600">Loading dashboard...</span>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            Retry
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const { analytics } = dashboardData || { analytics: { overview: {}, usersByRole: [], revenueByPlan: [] } }
+  const recentSchools = dashboardData?.recentSchools || []
+
+  const platformStats = [
+    {
+      title: "Total Schools",
+      value: analytics.overview?.totalSchools?.toString() || "0",
+      change: "+23%",
+      trend: "up",
+      icon: Building2,
+      color: "text-blue-600"
+    },
+    {
+      title: "Active Users",
+      value: analytics.overview?.totalUsers?.toLocaleString() || "0",
+      change: "+15%",
+      trend: "up", 
+      icon: Users,
+      color: "text-green-600"
+    },
+    {
+      title: "Monthly Revenue",
+      value: `₹${((analytics.overview?.monthlyRevenue || 0) / 100000).toFixed(1)}L`,
+      change: "+18%",
+      trend: "up",
+      icon: IndianRupee,
+      color: "text-purple-600"
+    },
+    {
+      title: "Platform Uptime",
+      value: "99.9%",
+      change: "+0.1%",
+      trend: "up",
+      icon: Activity,
+      color: "text-orange-600"
+    }
+  ]
 
   return (
     <div className="space-y-4 p-4 max-w-7xl mx-auto">
@@ -70,11 +135,18 @@ export default function SuperAdminDashboard() {
             Analytics
           </Button>
           <Button 
+            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 h-9 px-3 text-sm mr-2"
+            onClick={() => navigation.navigateToSchoolRegister()}
+          >
+            <School className="h-4 w-4 mr-2" />
+            Register School
+          </Button>
+          <Button 
             className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 h-9 px-3 text-sm"
             onClick={() => navigation.navigateToAddSchool()}
           >
             <Building2 className="h-4 w-4 mr-2" />
-            Add School
+            Manage Schools
           </Button>
         </div>
       </div>
@@ -121,30 +193,41 @@ export default function SuperAdminDashboard() {
             <CardDescription className="text-xs">Latest schools joined</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {recentSchools.map((school, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                      <Building2 className="h-4 w-4 text-white" />
+            {recentSchools.length > 0 ? (
+              <div className="space-y-3">
+                {recentSchools.slice(0, 4).map((school, index) => (
+                  <div key={school.id || index} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <Building2 className="h-4 w-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{school.name}</p>
+                        <p className="text-xs text-gray-500">{school.location} • {school.students} students</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium">{school.name}</p>
-                      <p className="text-xs text-gray-500">{school.location} • {school.students} students</p>
+                    <div className="text-right">
+                      <div className={`px-2 py-1 rounded-full text-xs ${
+                        school.status === 'Active' ? 'bg-green-100 text-green-800' :
+                        school.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                        school.status === 'Trial' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {school.selectedPackage || school.status}
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className={`px-2 py-1 rounded-full text-xs ${
-                      school.status === 'Active' ? 'bg-green-100 text-green-800' :
-                      school.status === 'Trial' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {school.plan}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 mb-4">No schools registered yet</p>
+                <Button onClick={() => navigation.navigateToSchoolRegister()}>
+                  Register First School
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 

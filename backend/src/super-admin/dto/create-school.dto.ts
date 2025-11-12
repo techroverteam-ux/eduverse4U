@@ -29,8 +29,24 @@ export class CreateSchoolDto {
   principalPhone?: string;
 
   @IsOptional()
+  @IsString()
+  principalQualification?: string;
+
+  @IsOptional()
+  @IsString()
+  principalExperience?: string;
+
+  @IsOptional()
+  @IsString()
+  adminName?: string;
+
+  @IsOptional()
   @IsEmail()
   adminEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  adminPhone?: string;
 
   @IsString()
   addressLine1: string;
@@ -51,7 +67,47 @@ export class CreateSchoolDto {
 
   @IsOptional()
   @IsString()
+  district?: string;
+
+  @IsOptional()
+  @IsString()
+  country?: string;
+
+  @IsOptional()
+  @IsString()
+  contactPhone?: string;
+
+  @IsOptional()
+  @IsEmail()
+  contactEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  website?: string;
+
+  @IsOptional()
+  @IsString()
   schoolType?: string;
+
+  @IsOptional()
+  @IsString()
+  board?: string;
+
+  @IsOptional()
+  @IsString()
+  establishedYear?: string;
+
+  @IsOptional()
+  @IsString()
+  affiliationNumber?: string;
+
+  @IsOptional()
+  @IsArray()
+  mediumOfInstruction?: string[];
+
+  @IsOptional()
+  @IsArray()
+  classesOffered?: string[];
 
   @IsOptional()
   @IsNumber()
@@ -63,8 +119,52 @@ export class CreateSchoolDto {
 
   @IsOptional()
   @IsNumber()
-  establishmentYear?: number;
+  totalStaff?: number;
+
+  @IsOptional()
+  @IsNumber()
+  totalClassrooms?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  hasLibrary?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hasLaboratory?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hasComputerLab?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hasPlayground?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hasAuditorium?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hasMedicalRoom?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hasCanteen?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hasTransport?: boolean;
 
   @IsString()
   selectedPackage: string;
+
+  @IsOptional()
+  @IsNumber()
+  establishmentYear?: number;
+
+  @IsOptional()
+  @IsArray()
+  branches?: any[];
 }

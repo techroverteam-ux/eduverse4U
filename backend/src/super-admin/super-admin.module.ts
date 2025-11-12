@@ -5,11 +5,13 @@ import { SuperAdminService } from './super-admin.service';
 import { School } from './entities/school.entity';
 import { PlatformSettings } from './entities/platform-settings.entity';
 import { BillingRecord } from './entities/billing-record.entity';
+import { SubscriptionPlan } from './entities/subscription-plan.entity';
+import { SchoolBranch } from './entities/school-branch.entity';
 import { User } from '../users/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([School, PlatformSettings, BillingRecord, User])
+    TypeOrmModule.forFeature([School, PlatformSettings, BillingRecord, SubscriptionPlan, SchoolBranch, User])
   ],
   controllers: [SuperAdminController],
   providers: [SuperAdminService],

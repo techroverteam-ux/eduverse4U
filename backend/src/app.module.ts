@@ -11,7 +11,9 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { BulkModule } from './bulk/bulk.module';
 import { HealthModule } from './health/health.module';
 import { SuperAdminModule } from './super-admin/super-admin.module';
+import { MasterModule } from './master/master.module';
 import { ParentsModule } from './parents/parents.module';
+import { SchoolsModule } from './schools/schools.module';
 
 @Module({
   imports: [
@@ -38,7 +40,9 @@ import { ParentsModule } from './parents/parents.module';
     BulkModule,
     HealthModule,
     SuperAdminModule,
+    MasterModule,
     ParentsModule,
+    SchoolsModule,
   ],
 })
 export class AppModule {}

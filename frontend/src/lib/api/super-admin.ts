@@ -48,6 +48,23 @@ class SuperAdminAPI {
     return this.request(`/schools${query ? `?${query}` : ''}`);
   }
 
+  async getSchoolsPaginated(params: {
+    page: number;
+    limit: number;
+    status?: string;
+    plan?: string;
+    search?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+    searchParams.append('page', params.page.toString());
+    searchParams.append('limit', params.limit.toString());
+    if (params.status) searchParams.append('status', params.status);
+    if (params.plan) searchParams.append('plan', params.plan);
+    if (params.search) searchParams.append('search', params.search);
+    
+    return this.request(`/schools/paginated?${searchParams.toString()}`);
+  }
+
   async getSchoolById(id: string) {
     return this.request(`/schools/${id}`);
   }
@@ -72,6 +89,28 @@ class SuperAdminAPI {
     });
   }
 
+  async getSchoolBranches(schoolId: string) {
+    return this.request(`/schools/${schoolId}/branches`);
+  }
+
+  async createSchoolBranch(schoolId: string, branchData: any) {
+    return this.request(`/schools/${schoolId}/branches`, {
+      method: 'POST',
+      body: JSON.stringify(branchData),
+    });
+  }
+
+  async updateSchoolBranch(schoolId: string, branchId: string, branchData: any) {
+    return this.request(`/schools/${schoolId}/branches/${branchId}`, {
+      method: 'PUT',
+      body: JSON.stringify(branchData),
+    });
+  }
+
+  async getAllBranches() {
+    return this.request('/branches');
+  }
+
   // Users APIs
   async getAllUsers(filters?: { role?: string; status?: string; schoolId?: string; search?: string }) {
     const params = new URLSearchParams();
@@ -82,6 +121,25 @@ class SuperAdminAPI {
     
     const query = params.toString();
     return this.request(`/users${query ? `?${query}` : ''}`);
+  }
+
+  async getUsersPaginated(params: {
+    page: number;
+    limit: number;
+    role?: string;
+    status?: string;
+    schoolId?: string;
+    search?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+    searchParams.append('page', params.page.toString());
+    searchParams.append('limit', params.limit.toString());
+    if (params.role) searchParams.append('role', params.role);
+    if (params.status) searchParams.append('status', params.status);
+    if (params.schoolId) searchParams.append('schoolId', params.schoolId);
+    if (params.search) searchParams.append('search', params.search);
+    
+    return this.request(`/users/paginated?${searchParams.toString()}`);
   }
 
   async getUserById(id: string) {

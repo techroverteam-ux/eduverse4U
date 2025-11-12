@@ -6,20 +6,48 @@ import {
   GraduationCap, Users, CreditCard, Calendar, BarChart3, 
   Bell, Settings, BookOpen, Award, MessageSquare, 
   Menu, X, LogOut, User, Building2, Globe, IndianRupee,
-  AlertCircle, FileText, Receipt, CheckCircle, TrendingUp
+  AlertCircle, FileText, Receipt, CheckCircle, TrendingUp, ChevronRight
 } from 'lucide-react'
+import { Toaster } from '@/components/ui/toast'
 
 const sidebarItems = {
   super_admin: [
     { icon: BarChart3, label: 'Platform Overview', href: '/super-admin' },
-    { icon: Building2, label: 'Schools Management', href: '/super-admin/schools' },
+    { icon: Building2, label: 'Schools', href: '/super-admin/schools' },
+    { icon: Building2, label: 'Branches', href: '/super-admin/branches' },
     { icon: Users, label: 'All Users', href: '/super-admin/users' },
+    { 
+      icon: BookOpen, 
+      label: 'Master Data', 
+      href: '/super-admin/master',
+      subItems: [
+        { label: 'Students', href: '/master/students' },
+        { label: 'Teachers', href: '/master/teachers' },
+        { label: 'Classes', href: '/master/classes' },
+        { label: 'Subjects', href: '/master/subjects' },
+        { label: 'Academic Years', href: '/master/academic-years' },
+        { label: 'Fee Structure', href: '/master/fee-structures' }
+      ]
+    },
     { icon: IndianRupee, label: 'Billing & Revenue', href: '/super-admin/billing' },
     { icon: Globe, label: 'Analytics', href: '/super-admin/analytics' },
     { icon: Settings, label: 'Platform Settings', href: '/super-admin/settings' },
   ],
   admin: [
     { icon: BarChart3, label: 'Dashboard', href: '/dashboard' },
+    { 
+      icon: BookOpen, 
+      label: 'Master Data', 
+      href: '/master',
+      subItems: [
+        { label: 'Students', href: '/master/students' },
+        { label: 'Teachers', href: '/master/teachers' },
+        { label: 'Classes', href: '/master/classes' },
+        { label: 'Subjects', href: '/master/subjects' },
+        { label: 'Academic Years', href: '/master/academic-years' },
+        { label: 'Fee Structure', href: '/master/fee-structures' }
+      ]
+    },
     { icon: Users, label: 'Students', href: '/dashboard/students' },
     { icon: BookOpen, label: 'Classes', href: '/dashboard/classes' },
     { icon: Calendar, label: 'Schedule', href: '/dashboard/schedule' },
@@ -65,7 +93,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState({ role: 'admin' as any, name: 'Admin User', email: 'admin@school.edu' })
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isClient, setIsClient] = useState(false)
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([])
   const pathname = usePathname()
+
+  const toggleSubmenu = (label: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(label) 
+        ? prev.filter(item => item !== label)
+        : [...prev, label]
+    )
+  }
   
   useEffect(() => {
     setIsClient(true)
@@ -147,18 +184,44 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <nav className="mt-6 px-3">
           {sidebarItems[currentUser.role as keyof typeof sidebarItems]?.map((item, index) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className={`flex items-center px-4 py-3 ${theme.sidebarText} rounded-xl ${theme.sidebarHover} transition-all duration-200 mb-2 group relative overflow-hidden ${
-                pathname === item.href ? 'bg-white/10' : ''
-              }`}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <item.icon className="h-5 w-5 mr-3 group-hover:scale-110 transition-transform relative z-10" />
-              <span className="font-medium relative z-10">{item.label}</span>
-              {pathname === item.href && <div className="absolute right-2 w-2 h-2 bg-white rounded-full"></div>}
-            </a>
+            <div key={item.href} className="mb-2">
+              <a
+                href={item.subItems ? '#' : item.href}
+                onClick={item.subItems ? (e) => { e.preventDefault(); toggleSubmenu(item.label) } : undefined}
+                className={`flex items-center px-4 py-3 ${theme.sidebarText} rounded-xl ${theme.sidebarHover} transition-all duration-200 group relative overflow-hidden ${
+                  pathname === item.href ? 'bg-white/10' : ''
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <item.icon className="h-5 w-5 mr-3 group-hover:scale-110 transition-transform relative z-10" />
+                <span className="font-medium relative z-10 flex-1">{item.label}</span>
+                {item.subItems && (
+                  <div className={`transform transition-transform duration-200 ${
+                    expandedMenus.includes(item.label) ? 'rotate-90' : ''
+                  }`}>
+                    <ChevronRight className="h-4 w-4" />
+                  </div>
+                )}
+                {pathname === item.href && <div className="absolute right-2 w-2 h-2 bg-white rounded-full"></div>}
+              </a>
+              
+              {item.subItems && expandedMenus.includes(item.label) && (
+                <div className="ml-8 mt-2 space-y-1">
+                  {item.subItems.map((subItem, subIndex) => (
+                    <a
+                      key={subItem.href}
+                      href={subItem.href}
+                      className={`flex items-center px-3 py-2 text-sm ${theme.sidebarText} rounded-lg hover:bg-white/5 transition-all duration-200 ${
+                        pathname === subItem.href ? 'bg-white/10 font-medium' : ''
+                      }`}
+                    >
+                      <div className="w-2 h-2 bg-white/40 rounded-full mr-3"></div>
+                      {subItem.label}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </nav>
 
@@ -219,6 +282,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+      
+      {/* Global Toast Notifications */}
+      <Toaster />
     </div>
   )
 }

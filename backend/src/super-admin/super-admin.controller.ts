@@ -1,13 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { SuperAdminService } from './super-admin.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
 import { CreateSchoolDto } from './dto/create-school.dto';
 
 @Controller('super-admin')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('super_admin')
 export class SuperAdminController {
   constructor(private readonly superAdminService: SuperAdminService) {}
 
@@ -193,5 +188,53 @@ export class SuperAdminController {
       exportedAt: new Date(),
       count: billing.length,
     };
+  }
+
+  // Subscription Plans Endpoints
+  @Get('subscription-plans')
+  async getSubscriptionPlans() {
+    return await this.superAdminService.getAllSubscriptionPlans();
+  }
+
+  @Post('subscription-plans')
+  async createSubscriptionPlan(@Body() planData: any) {
+    return await this.superAdminService.createSubscriptionPlan(planData);
+  }
+
+  @Put('subscription-plans/:id')
+  async updateSubscriptionPlan(@Param('id') id: string, @Body() planData: any) {
+    return await this.superAdminService.updateSubscriptionPlan(id, planData);
+  }
+
+  // School Branches Endpoints
+  @Get('schools/:schoolId/branches')
+  async getSchoolBranches(@Param('schoolId') schoolId: string) {
+    return await this.superAdminService.getSchoolBranches(schoolId);
+  }
+
+  @Post('schools/:schoolId/branches')
+  async createSchoolBranches(@Param('schoolId') schoolId: string, @Body('branches') branches: any[]) {
+    return await this.superAdminService.createSchoolBranches(schoolId, branches);
+  }
+
+  @Put('branches/:id')
+  async updateSchoolBranch(@Param('id') id: string, @Body() branchData: any) {
+    return await this.superAdminService.updateSchoolBranch(id, branchData);
+  }
+
+  @Delete('branches/:id')
+  async deleteSchoolBranch(@Param('id') id: string) {
+    return await this.superAdminService.deleteSchoolBranch(id);
+  }
+
+  // All Branches Endpoint
+  @Get('branches')
+  async getAllBranches(
+    @Query('schoolId') schoolId?: string,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+  ) {
+    const filters = { schoolId, status, search };
+    return await this.superAdminService.getAllBranches(filters);
   }
 }

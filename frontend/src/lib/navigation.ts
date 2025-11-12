@@ -7,6 +7,8 @@ export interface INavigationService {
   navigateToSchools(): void
   navigateToAddSchool(): void
   navigateToSchoolSuccess(): void
+  navigateToSchoolRegister(): void
+  navigateToSuperAdminDashboard(): void
 }
 
 export class NavigationService implements INavigationService {
@@ -32,6 +34,14 @@ export class NavigationService implements INavigationService {
 
   navigateToSchoolSuccess(): void {
     this.navigateTo('/super-admin/schools/success')
+  }
+
+  navigateToSchoolRegister(): void {
+    this.navigateTo('/schools/register')
+  }
+
+  navigateToSuperAdminDashboard(): void {
+    this.navigateTo('/super-admin/dashboard')
   }
 }
 

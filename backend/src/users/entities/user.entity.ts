@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
 import { Tenant } from '../../common/entities/tenant.entity';
 import { School } from '../../super-admin/entities/school.entity';
 
@@ -41,6 +41,7 @@ export class User {
   isActive: boolean;
 
   @ManyToOne(() => School, school => school.users, { nullable: true })
+  @JoinColumn({ name: 'school_id' })
   school: School;
 
   @Column({ nullable: true })

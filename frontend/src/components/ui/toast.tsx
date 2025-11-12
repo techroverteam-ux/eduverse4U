@@ -75,11 +75,11 @@ export function Toaster() {
   }
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
+    <div className="fixed top-6 right-6 z-[9999] space-y-2 max-w-sm">
       {toastList.map((toast) => (
         <div
           key={toast.id}
-          className={`max-w-sm w-full border rounded-lg p-4 shadow-lg ${getStyles(toast.type)} animate-in slide-in-from-right`}
+          className={`w-full border rounded-lg p-4 shadow-lg ${getStyles(toast.type)} transform transition-all duration-300 ease-in-out animate-in slide-in-from-right-5`}
         >
           <div className="flex items-start">
             <div className="flex-shrink-0">
