@@ -1,0 +1,31 @@
+{
+  "name": "eduverse-erp",
+  "version": "1.0.0",
+  "description": "India's Advanced School Management SaaS",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\"",
+    "backend:dev": "cd backend && npm run start:dev",
+    "frontend:dev": "cd frontend && npm run dev",
+    "build": "npm run backend:build && npm run frontend:build",
+    "backend:build": "cd backend && npm run build",
+    "frontend:build": "cd frontend && npm run build"
+  },
+  "keywords": [
+    "school",
+    "erp",
+    "saas",
+    "education",
+    "india"
+  ],
+  "author": "EduVerse Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "axios": "^1.13.2",
+    "bcryptjs": "^3.0.3",
+    "pg": "^8.16.3"
+  }
+}
