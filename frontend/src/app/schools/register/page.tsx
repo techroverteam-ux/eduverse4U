@@ -226,7 +226,7 @@ export default function SchoolRegistration() {
     setFormData(prev => ({
       ...prev,
       [section]: {
-        ...prev[section as keyof SchoolFormData],
+        ...(prev[section as keyof SchoolFormData] as object),
         [field]: value
       }
     }))

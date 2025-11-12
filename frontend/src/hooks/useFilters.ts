@@ -54,7 +54,7 @@ export const useFilters = () => {
       }
       
       if (branches.length === 0) {
-        branches = schools.flatMap(school => [
+        branches = schools.flatMap((school: any) => [
           {
             id: `${school.id}-branch-main`,
             name: 'Main Campus',
@@ -85,18 +85,18 @@ export const useFilters = () => {
         ])
         
         setFilters({
-          schools: schools.map(s => ({ id: s.id, name: s.name })),
-          branches: branches.map(b => ({ 
+          schools: schools.map((s: any) => ({ id: s.id, name: s.name })),
+          branches: branches.map((b: any) => ({ 
             id: b.id, 
             name: b.name, 
             schoolId: b.schoolId 
           })),
-          academicYears: academicYears.map(ay => ({ 
+          academicYears: academicYears.map((ay: any) => ({ 
             id: ay.id, 
             name: ay.name, 
             schoolId: ay.schoolId || currentSchoolId
           })),
-          classes: classes.map(c => ({ 
+          classes: classes.map((c: any) => ({ 
             id: c.id, 
             name: c.section ? `${c.name} - ${c.section}` : c.name, 
             section: c.section || 'A',

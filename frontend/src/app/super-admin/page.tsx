@@ -86,7 +86,7 @@ export default function SuperAdminDashboard() {
   const platformStats = [
     {
       title: "Total Schools",
-      value: analytics.overview?.totalSchools?.toString() || "0",
+      value: (analytics.overview as any)?.totalSchools?.toString() || "0",
       change: "+23%",
       trend: "up",
       icon: Building2,
@@ -94,7 +94,7 @@ export default function SuperAdminDashboard() {
     },
     {
       title: "Active Users",
-      value: analytics.overview?.totalUsers?.toLocaleString() || "0",
+      value: (analytics.overview as any)?.totalUsers?.toLocaleString() || "0",
       change: "+15%",
       trend: "up", 
       icon: Users,
@@ -102,7 +102,7 @@ export default function SuperAdminDashboard() {
     },
     {
       title: "Monthly Revenue",
-      value: `₹${((analytics.overview?.monthlyRevenue || 0) / 100000).toFixed(1)}L`,
+      value: `₹${(((analytics.overview as any)?.monthlyRevenue || 0) / 100000).toFixed(1)}L`,
       change: "+18%",
       trend: "up",
       icon: IndianRupee,

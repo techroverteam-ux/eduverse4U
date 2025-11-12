@@ -82,9 +82,6 @@ export default function StudentsPage() {
   useEffect(() => {
     setFilterBranch('all')
     setFilterClass('all')
-    if (selectedSchool !== 'all') {
-      setFormData(prev => ({ ...prev, schoolId: selectedSchool }))
-    }
   }, [selectedSchool])
 
   const fetchStudents = async () => {

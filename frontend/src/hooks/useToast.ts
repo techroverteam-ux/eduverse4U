@@ -19,14 +19,7 @@ export const useSchoolToast = (): SchoolToastMessages => {
     schoolAdded: (schoolName: string) => {
       toast.success(
         'School Added Successfully!',
-        `${schoolName} has been added to the platform and is ready to start their journey.`,
-        {
-          label: 'View School',
-          onClick: () => {
-            // Navigate to school details
-            window.location.href = `/super-admin/schools`
-          }
-        }
+        `${schoolName} has been added to the platform and is ready to start their journey.`
       )
     },
 
@@ -82,14 +75,7 @@ export const useSchoolToast = (): SchoolToastMessages => {
     exportComplete: (format: string, count: number) => {
       toast.success(
         'Export Completed',
-        `${count} schools exported to ${format.toUpperCase()} format successfully.`,
-        {
-          label: 'Download',
-          onClick: () => {
-            // Trigger download
-            toast.info('Download Started', 'Your file download has begun.')
-          }
-        }
+        `${count} schools exported to ${format.toUpperCase()} format successfully.`
       )
     },
 
@@ -97,13 +83,7 @@ export const useSchoolToast = (): SchoolToastMessages => {
       if (errors > 0) {
         toast.warning(
           'Import Completed with Warnings',
-          `${count} schools imported successfully, ${errors} failed.`,
-          {
-            label: 'View Errors',
-            onClick: () => {
-              toast.info('Error Report', 'Opening detailed error report...')
-            }
-          }
+          `${count} schools imported successfully, ${errors} failed.`
         )
       } else {
         toast.success(
@@ -123,13 +103,7 @@ export const useSchoolToast = (): SchoolToastMessages => {
     subscriptionChanged: (schoolName: string, plan: string) => {
       toast.success(
         'Subscription Updated',
-        `${schoolName} has been upgraded to ${plan} plan.`,
-        {
-          label: 'View Details',
-          onClick: () => {
-            toast.info('Plan Details', `Viewing ${plan} plan features and benefits.`)
-          }
-        }
+        `${schoolName} has been upgraded to ${plan} plan.`
       )
     }
   }
@@ -157,23 +131,13 @@ export const useToast = () => {
     toast.info(title, message)
   }
 
-  const showPromiseToast = <T,>(
-    promise: Promise<T>,
-    messages: {
-      loading: string
-      success: string | ((data: T) => string)
-      error: string | ((error: any) => string)
-    }
-  ) => {
-    return toast.promise(promise, messages)
-  }
+
 
   return {
     showLoadingToast,
     showSuccessToast,
     showErrorToast,
     showWarningToast,
-    showInfoToast,
-    showPromiseToast
+    showInfoToast
   }
 }

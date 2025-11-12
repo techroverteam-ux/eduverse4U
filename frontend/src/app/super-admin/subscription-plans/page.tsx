@@ -27,7 +27,7 @@ export default function SubscriptionPlansPage() {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const data = await superAdminAPI.request('/subscription-plans')
+        const data: any[] = [] // TODO: Add subscription plans API method
         setPlans(data)
       } catch (error) {
         console.error('Failed to fetch plans:', error)

@@ -11,7 +11,7 @@ import {
   Sparkles, TrendingUp, Award, Shield, User, X
 } from "lucide-react"
 import { toast } from "@/components/ui/toast"
-import { useSchoolToast } from "@/hooks/useToast"
+
 import { SchoolsLoadingState, EmptyState, ErrorState, LoadingSpinner } from "@/components/ui/loading-states"
 
 interface School {
@@ -35,7 +35,7 @@ import { superAdminAPI } from "@/lib/api/super-admin"
 
 export default function SuperAdminSchools() {
   const navigation = useNavigation()
-  const schoolToast = useSchoolToast()
+
   const [schools, setSchools] = useState<School[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -89,14 +89,13 @@ export default function SuperAdminSchools() {
     if (confirm(`⚠️ Delete ${school.name}?\n\nThis will permanently remove:\n• All school data\n• Student records\n• Teacher accounts\n• Financial records\n\nThis action cannot be undone.`)) {
       const deletePromise = superAdminAPI.deleteSchool(schoolId)
       
-      toast.promise(deletePromise, {
-        loading: `Removing ${school.name} from platform...`,
-        success: () => {
-          setSchools(prev => prev.filter(s => s.id !== schoolId))
-          return `${school.name} has been permanently removed`
-        },
-        error: (err) => `Failed to delete ${school.name}: ${err.message || 'Server error occurred'}`
-      })
+      try {
+        await deletePromise
+        setSchools(prev => prev.filter(s => s.id !== schoolId))
+        toast.success(`${school.name} has been permanently removed`)
+      } catch (err: any) {
+        toast.error(`Failed to delete ${school.name}: ${err.message || 'Server error occurred'}`)
+      }
     }
   }
 
@@ -106,17 +105,15 @@ export default function SuperAdminSchools() {
 
     const updatePromise = superAdminAPI.updateSchool(schoolId, { status: newStatus })
     
-    toast.promise(updatePromise, {
-      loading: `Updating ${school.name} status...`,
-      success: () => {
-        setSchools(prev => prev.map(s => 
-          s.id === schoolId ? { ...s, status: newStatus as any } : s
-        ))
-        schoolToast.schoolStatusChanged(school.name, newStatus)
-        return ''
-      },
-      error: (err) => `Status update failed: ${err.message || 'Please try again'}`
-    })
+    try {
+      await updatePromise
+      setSchools(prev => prev.map(s => 
+        s.id === schoolId ? { ...s, status: newStatus as any } : s
+      ))
+      toast.success(`${school.name} status updated to ${newStatus}`)
+    } catch (err: any) {
+      toast.error(`Status update failed: ${err.message || 'Please try again'}`)
+    }
   }
 
   const handleExportSchools = async (format: 'csv' | 'excel' | 'pdf' = 'csv') => {
@@ -125,7 +122,7 @@ export default function SuperAdminSchools() {
     try {
       // Simulate export process
       await new Promise(resolve => setTimeout(resolve, 2000))
-      schoolToast.exportComplete(format, filteredSchools.length)
+      toast.success(`Export completed - ${schools.length} schools exported as ${format.toUpperCase()}`)
     } catch (error) {
       toast.error('Export Failed', 'Unable to export schools data. Please try again.')
     } finally {
@@ -138,17 +135,15 @@ export default function SuperAdminSchools() {
       schoolIds.map(id => superAdminAPI.updateSchool(id, { status: newStatus }))
     )
     
-    toast.promise(updatePromise, {
-      loading: `Updating ${schoolIds.length} schools...`,
-      success: () => {
-        setSchools(prev => prev.map(school => 
-          schoolIds.includes(school.id) ? { ...school, status: newStatus as any } : school
-        ))
-        schoolToast.bulkAction(`Status changed to ${newStatus}`, schoolIds.length)
-        return ''
-      },
-      error: 'Bulk update failed. Some schools may not have been updated.'
-    })
+    try {
+      await updatePromise
+      setSchools(prev => prev.map(school => 
+        schoolIds.includes(school.id) ? { ...school, status: newStatus as any } : school
+      ))
+      toast.success(`Updated ${schoolIds.length} schools to ${newStatus}`)
+    } catch (err) {
+      toast.error('Bulk update failed. Some schools may not have been updated.')
+    }
   }
 
   // Client-side pagination
@@ -293,7 +288,7 @@ export default function SuperAdminSchools() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-yellow-100 text-sm font-medium">Trial Schools</p>
-                <p className="text-3xl font-bold">{schools.filter(s => s.status === 'Trial' || s.status === 'Pending').length}</p>
+                <p className="text-3xl font-bold">{schools.filter(s => s.status === 'Trial' || (s as any).status === 'Pending').length}</p>
                 <p className="text-yellow-100 text-xs mt-1">85% conversion rate</p>
               </div>
               <div className="bg-white/20 p-3 rounded-full">
@@ -479,9 +474,9 @@ export default function SuperAdminSchools() {
                         <div className="text-sm text-gray-500">{school.teachers || 0} teachers</div>
                       </td>
                       <td className="py-4 px-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPlanColor(school.plan || school.selectedPackage)}`}>
-                          {school.plan || school.selectedPackage}
-                          {(school.plan === 'Premium' || school.selectedPackage === 'premium') && <Crown className="h-3 w-3 ml-1 inline" />}
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPlanColor(school.plan || (school as any).selectedPackage)}`}>
+                          {school.plan || (school as any).selectedPackage}
+                          {(school.plan === 'Premium' || (school as any).selectedPackage === 'premium') && <Crown className="h-3 w-3 ml-1 inline" />}
                         </span>
                       </td>
                       <td className="py-4 px-4">
@@ -493,7 +488,7 @@ export default function SuperAdminSchools() {
                         </div>
                       </td>
                       <td className="py-4 px-4">
-                        <div className="font-semibold text-gray-900">₹{((school.revenue || school.monthlyRevenue || 0) / 1000).toFixed(0)}k</div>
+                        <div className="font-semibold text-gray-900">₹{((school.revenue || (school as any).monthlyRevenue || 0) / 1000).toFixed(0)}k</div>
                         <div className="text-sm text-gray-500">Monthly</div>
                       </td>
                       <td className="py-4 px-4">
@@ -504,10 +499,7 @@ export default function SuperAdminSchools() {
                             className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 transform hover:scale-110 group" 
                             onClick={() => {
                               setSelectedSchool(school)
-                              toast.info('📋 School Profile', `Opening detailed view for ${school.name}`, {
-                                label: 'View Dashboard',
-                                onClick: () => navigation.navigateTo(`/schools/${school.id}/dashboard`)
-                              })
+                              toast.info('📋 School Profile', `Opening detailed view for ${school.name}`)
                             }}
                           >
                             <Eye className="h-4 w-4 group-hover:animate-pulse" />
@@ -518,10 +510,7 @@ export default function SuperAdminSchools() {
                             className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600 transition-all duration-200 transform hover:scale-110 group" 
                             onClick={() => {
                               navigation.navigateTo(`/super-admin/schools/edit/${school.id}`)
-                              toast.info('✏️ Edit Mode', `Modifying ${school.name} settings and information`, {
-                                label: 'Quick Edit',
-                                onClick: () => toast.info('Quick Edit', 'Opening quick edit panel...')
-                              })
+                              toast.info('✏️ Edit Mode', `Modifying ${school.name} settings and information`)
                             }}
                           >
                             <Edit className="h-4 w-4 group-hover:rotate-12 transition-transform duration-200" />

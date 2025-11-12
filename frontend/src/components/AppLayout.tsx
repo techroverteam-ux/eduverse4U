@@ -186,8 +186,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {sidebarItems[currentUser.role as keyof typeof sidebarItems]?.map((item, index) => (
             <div key={item.href} className="mb-2">
               <a
-                href={item.subItems ? '#' : item.href}
-                onClick={item.subItems ? (e) => { e.preventDefault(); toggleSubmenu(item.label) } : undefined}
+                href={(item as any).subItems ? '#' : item.href}
+                onClick={(item as any).subItems ? (e) => { e.preventDefault(); toggleSubmenu(item.label) } : undefined}
                 className={`flex items-center px-4 py-3 ${theme.sidebarText} rounded-xl ${theme.sidebarHover} transition-all duration-200 group relative overflow-hidden ${
                   pathname === item.href ? 'bg-white/10' : ''
                 }`}
@@ -195,7 +195,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <item.icon className="h-5 w-5 mr-3 group-hover:scale-110 transition-transform relative z-10" />
                 <span className="font-medium relative z-10 flex-1">{item.label}</span>
-                {item.subItems && (
+                {(item as any).subItems && (
                   <div className={`transform transition-transform duration-200 ${
                     expandedMenus.includes(item.label) ? 'rotate-90' : ''
                   }`}>
@@ -205,9 +205,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {pathname === item.href && <div className="absolute right-2 w-2 h-2 bg-white rounded-full"></div>}
               </a>
               
-              {item.subItems && expandedMenus.includes(item.label) && (
+              {(item as any).subItems && expandedMenus.includes(item.label) && (
                 <div className="ml-8 mt-2 space-y-1">
-                  {item.subItems.map((subItem, subIndex) => (
+                  {(item as any).subItems.map((subItem: any, subIndex: number) => (
                     <a
                       key={subItem.href}
                       href={subItem.href}
