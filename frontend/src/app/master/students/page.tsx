@@ -39,6 +39,7 @@ interface Student {
   schoolId: string
   schoolName: string
   status: 'Active' | 'Inactive' | 'Transferred' | 'Graduated'
+  photoUrl?: string
   bloodGroup?: string
   religion?: string
   caste?: string
@@ -405,9 +406,17 @@ export default function StudentsPage() {
                     <tr key={student.id} className="border-b hover:bg-gray-50 transition-colors">
                       <td className="py-4 px-4">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                            {student.firstName.charAt(0)}{student.lastName.charAt(0)}
-                          </div>
+                          {student.photoUrl ? (
+                            <img 
+                              src={student.photoUrl} 
+                              alt={`${student.firstName} ${student.lastName}`}
+                              className="w-10 h-10 rounded-full object-cover border-2 border-purple-200"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                              {student.firstName.charAt(0)}{student.lastName.charAt(0)}
+                            </div>
+                          )}
                           <div>
                             <div className="font-semibold text-gray-900">{student.firstName} {student.lastName}</div>
                             <div className="text-sm text-gray-500">Roll: {student.rollNumber}</div>
@@ -478,9 +487,17 @@ export default function StudentsPage() {
                 <Card key={student.id} className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
                   <CardContent className="p-6">
                     <div className="flex items-center space-x-3 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                        {student.firstName.charAt(0)}{student.lastName.charAt(0)}
-                      </div>
+                      {student.photoUrl ? (
+                        <img 
+                          src={student.photoUrl} 
+                          alt={`${student.firstName} ${student.lastName}`}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-purple-200"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                          {student.firstName.charAt(0)}{student.lastName.charAt(0)}
+                        </div>
+                      )}
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">{student.firstName} {student.lastName}</h3>
                         <p className="text-sm text-gray-500">Roll: {student.rollNumber}</p>
@@ -606,9 +623,17 @@ export default function StudentsPage() {
             
             <div className="p-6">
               <div className="flex items-center space-x-6 mb-6">
-                <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                  {selectedStudent.firstName.charAt(0)}{selectedStudent.lastName.charAt(0)}
-                </div>
+                {selectedStudent.photoUrl ? (
+                  <img 
+                    src={selectedStudent.photoUrl} 
+                    alt={`${selectedStudent.firstName} ${selectedStudent.lastName}`}
+                    className="w-20 h-20 rounded-full object-cover border-4 border-purple-200"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+                    {selectedStudent.firstName.charAt(0)}{selectedStudent.lastName.charAt(0)}
+                  </div>
+                )}
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900">{selectedStudent.firstName} {selectedStudent.lastName}</h3>
                   <p className="text-gray-600">Roll Number: {selectedStudent.rollNumber}</p>

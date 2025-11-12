@@ -81,4 +81,46 @@ export class Student {
 
   @Column()
   academicYearId: string;
+
+  @Column({ nullable: true })
+  photoUrl: string;
+
+  @Column({ nullable: true })
+  bloodGroup: string;
+
+  @Column({ nullable: true })
+  religion: string;
+
+  @Column({ nullable: true })
+  caste: string;
+
+  @Column({ nullable: true })
+  category: string;
+
+  @Column({ nullable: true })
+  aadharNumber: string;
+
+  @Column({ nullable: true })
+  previousSchool: string;
+
+  @Column({ type: 'boolean', default: false })
+  transportRequired: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  hostelRequired: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  medicalConditions: string;
+
+  @Column({ nullable: true })
+  emergencyContact: string;
+
+  @Column({ nullable: true })
+  guardianName: string;
+
+  @Column({ nullable: true })
+  guardianPhone: string;
+
+  @Column({ nullable: true })
+  guardianRelation: string;
 }

@@ -114,6 +114,23 @@ class MasterAPI {
     });
   }
 
+  async createStudentWithPhoto(formData: FormData) {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/master/students/with-photo`, {
+      method: 'POST',
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
   async updateStudent(id: string, data: any) {
     return this.request(`/students/${id}`, {
       method: 'PUT',

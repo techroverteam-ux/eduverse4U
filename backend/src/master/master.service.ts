@@ -307,6 +307,37 @@ export class MasterService {
     return await this.studentRepository.save(student);
   }
 
+  async createStudentWithPhoto(data: any, file?: Express.Multer.File) {
+    let photoUrl = null;
+    
+    if (file) {
+      // Save photo to uploads directory
+      const fileName = `student-${Date.now()}-${file.originalname}`;
+      const fs = require('fs');
+      const path = require('path');
+      
+      const uploadsDir = path.join(process.cwd(), 'uploads', 'students');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      
+      const filePath = path.join(uploadsDir, fileName);
+      fs.writeFileSync(filePath, file.buffer);
+      
+      photoUrl = `/uploads/students/${fileName}`;
+    }
+    
+    const studentData = {
+      ...data,
+      photoUrl,
+      transportRequired: data.transportRequired === 'true',
+      hostelRequired: data.hostelRequired === 'true'
+    };
+    
+    const student = this.studentRepository.create(studentData);
+    return await this.studentRepository.save(student);
+  }
+
   async updateStudent(id: string, data: any) {
     await this.studentRepository.update(id, data);
     return await this.studentRepository.findOne({ where: { id } });
@@ -475,7 +506,21 @@ export class MasterService {
         admissionDate: '2023-04-01',
         classId: 'class-id-here',
         academicYearId: 'academic-year-id-here',
-        branchId: 'branch-id-here'
+        branchId: 'branch-id-here',
+        bloodGroup: 'B+',
+        religion: 'Hindu',
+        caste: 'General',
+        category: 'General',
+        aadharNumber: '123456789012',
+        previousSchool: 'ABC Primary School',
+        transportRequired: 'true',
+        hostelRequired: 'false',
+        medicalConditions: 'None',
+        emergencyContact: '+91-9876543212',
+        guardianName: 'John Smith',
+        guardianPhone: '+91-9876543213',
+        guardianRelation: 'Uncle',
+        photoUrl: 'Leave blank - photos uploaded separately'
       }
     ];
 

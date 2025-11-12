@@ -139,6 +139,15 @@ export class MasterController {
     return await this.masterService.createStudent(data);
   }
 
+  @Post('students/with-photo')
+  @UseInterceptors(FileInterceptor('photo'))
+  async createStudentWithPhoto(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() data: any
+  ) {
+    return await this.masterService.createStudentWithPhoto(data, file);
+  }
+
   @Put('students/:id')
   async updateStudent(@Param('id') id: string, @Body() data: any) {
     return await this.masterService.updateStudent(id, data);

@@ -169,6 +169,35 @@ export default function AddStudentPage() {
     }))
   }
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('File too large', 'Please select an image smaller than 5MB')
+        return
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        toast.error('Invalid file type', 'Please select an image file')
+        return
+      }
+      
+      setFormData(prev => ({ ...prev, photo: file }))
+      
+      // Create preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setPhotoPreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const removePhoto = () => {
+    setFormData(prev => ({ ...prev, photo: null }))
+    setPhotoPreview(null)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -179,8 +208,19 @@ export default function AddStudentPage() {
 
     try {
       setLoading(true)
-      await masterAPI.createStudent(formData)
-      toast.success('Student added successfully', 'New student has been enrolled')
+      
+      // Create FormData for file upload
+      const submitData = new FormData()
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === 'photo' && value instanceof File) {
+          submitData.append('photo', value)
+        } else if (value !== null && value !== undefined) {
+          submitData.append(key, value.toString())
+        }
+      })
+      
+      await masterAPI.createStudentWithPhoto(submitData)
+      toast.success('Student added successfully', 'New student has been enrolled with photo')
       router.push('/master/students')
     } catch (error) {
       toast.error('Failed to add student', 'Please check the details and try again')
@@ -219,8 +259,10 @@ export default function AddStudentPage() {
       emergencyContact: '',
       guardianName: '',
       guardianPhone: '',
-      guardianRelation: ''
+      guardianRelation: '',
+      photo: null
     })
+    setPhotoPreview(null)
   }
 
   return (
@@ -265,6 +307,50 @@ export default function AddStudentPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Photo Upload Section */}
+            <div className="flex justify-center mb-6">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative">
+                  {photoPreview ? (
+                    <div className="relative">
+                      <img 
+                        src={photoPreview} 
+                        alt="Student Preview" 
+                        className="w-32 h-32 rounded-full object-cover border-4 border-purple-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={removePhoto}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-32 h-32 rounded-full bg-gray-200 border-4 border-dashed border-gray-300 flex items-center justify-center">
+                      <User className="h-12 w-12 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <div className="text-center">
+                  <input
+                    type="file"
+                    id="photo"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="photo"
+                    className="cursor-pointer bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    {photoPreview ? 'Change Photo' : 'Upload Photo'}
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">Max 5MB, JPG/PNG only</p>
+                </div>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="firstName">First Name *</Label>
