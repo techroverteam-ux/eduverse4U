@@ -5,8 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useNavigation } from "@/hooks/useNavigation"
 
 export default function AddSchoolPage() {
+  const navigation = useNavigation()
   const [formData, setFormData] = useState({
     schoolName: '',
     schoolCode: '',
@@ -16,7 +18,7 @@ export default function AddSchoolPage() {
 
   const handleSubmit = () => {
     console.log('Submitting:', formData)
-    window.location.href = '/super-admin/schools/success'
+    navigation.navigateToSchoolSuccess()
   }
 
   return (

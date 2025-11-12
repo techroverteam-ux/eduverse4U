@@ -2,12 +2,14 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { useNavigation } from "@/hooks/useNavigation"
 import { 
   CheckCircle, Download, Mail, Phone, Building2, 
   Calendar, IndianRupee, FileText, ArrowLeft
 } from "lucide-react"
 
 export default function SchoolRegistrationSuccess() {
+  const navigation = useNavigation()
   const registrationData = {
     registrationId: 'REG-' + Date.now(),
     schoolName: 'Demo School',
@@ -128,7 +130,7 @@ export default function SchoolRegistrationSuccess() {
         
         <Button 
           variant="outline"
-          onClick={() => window.location.href = '/super-admin/schools'}
+          onClick={() => navigation.navigateToSchools()}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Schools

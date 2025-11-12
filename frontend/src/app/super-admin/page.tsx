@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { useNavigation } from "@/hooks/useNavigation"
 import { 
   Building2, Users, IndianRupee, TrendingUp, 
   Globe, Activity, ArrowUp, ArrowDown, Crown, Zap 
@@ -50,6 +51,8 @@ const recentSchools = [
 ]
 
 export default function SuperAdminDashboard() {
+  const navigation = useNavigation()
+
   return (
     <div className="space-y-4 p-4 max-w-7xl mx-auto">
       {/* Compact Header */}
@@ -68,7 +71,7 @@ export default function SuperAdminDashboard() {
           </Button>
           <Button 
             className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 h-9 px-3 text-sm"
-            onClick={() => window.location.href = '/super-admin/schools/add'}
+            onClick={() => navigation.navigateToAddSchool()}
           >
             <Building2 className="h-4 w-4 mr-2" />
             Add School
@@ -177,7 +180,7 @@ export default function SuperAdminDashboard() {
             <Button 
               variant="outline" 
               className="h-16 flex-col border-purple-200 hover:bg-purple-50 hover:border-purple-300 text-xs"
-              onClick={() => window.location.href = '/super-admin/schools'}
+              onClick={() => navigation.navigateToSchools()}
             >
               <Building2 className="h-6 w-6 mb-1 text-purple-600" />
               <span className="font-medium">Schools</span>

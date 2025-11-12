@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { useNavigation } from "@/hooks/useNavigation"
 import { 
   Building2, Users, Search, Filter, Plus, Edit, Trash2, 
   Eye, MapPin, Calendar, Crown, CheckCircle, XCircle, Clock,
@@ -94,6 +95,7 @@ const mockSchools: School[] = [
 ]
 
 export default function SuperAdminSchools() {
+  const navigation = useNavigation()
   const [schools, setSchools] = useState<School[]>(mockSchools)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('all')
@@ -160,7 +162,7 @@ export default function SuperAdminSchools() {
           </h1>
           <p className="text-gray-600 text-sm">Manage all schools on the platform</p>
         </div>
-        <Button onClick={() => window.location.href = '/super-admin/schools/add'}
+        <Button onClick={() => navigation.navigateToAddSchool()}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 h-9 px-4">
           <Plus className="h-4 w-4 mr-2" />
           Add School
