@@ -18,7 +18,7 @@ const masterModules = [
   },
   {
     title: 'Classes',
-    description: 'Setup classes and sections',
+    description: 'Setup classes mapped to schools, branches & academic years',
     icon: BookOpen,
     href: '/master/classes',
     color: 'from-green-500 to-green-600'
@@ -31,11 +31,11 @@ const masterModules = [
     color: 'from-purple-500 to-purple-600'
   },
   {
-    title: 'Students',
-    description: 'Student records and enrollment',
-    icon: Users,
-    href: '/master/students',
-    color: 'from-orange-500 to-orange-600'
+    title: 'Class-Subject Mapping',
+    description: 'Map subjects to classes',
+    icon: BookOpen,
+    href: '/master/class-subject-mappings',
+    color: 'from-teal-500 to-teal-600'
   },
   {
     title: 'Teachers',
@@ -45,11 +45,11 @@ const masterModules = [
     color: 'from-red-500 to-red-600'
   },
   {
-    title: 'Time Tables',
-    description: 'Class schedules and periods',
-    icon: Clock,
-    href: '/master/time-tables',
-    color: 'from-indigo-500 to-indigo-600'
+    title: 'Students',
+    description: 'Student records and enrollment',
+    icon: Users,
+    href: '/master/students',
+    color: 'from-orange-500 to-orange-600'
   },
   {
     title: 'Fee Structure',
@@ -57,13 +57,6 @@ const masterModules = [
     icon: IndianRupee,
     href: '/master/fee-structures',
     color: 'from-yellow-500 to-yellow-600'
-  },
-  {
-    title: 'Class-Subject Mapping',
-    description: 'Map subjects to classes',
-    icon: BookOpen,
-    href: '/master/class-subject-mappings',
-    color: 'from-teal-500 to-teal-600'
   }
 ]
 

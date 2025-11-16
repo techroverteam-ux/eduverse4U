@@ -60,10 +60,10 @@ export class SchoolBranch {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => School, school => school.branches)
+  @ManyToOne(() => School, school => school.branches, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'school_id' })
   school: School;
 
-  @Column()
+  @Column({ name: 'school_id' })
   schoolId: string;
 }

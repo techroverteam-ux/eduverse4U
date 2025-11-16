@@ -21,8 +21,18 @@ class MasterAPI {
   }
 
   // Academic Years
-  async getAcademicYears(schoolId: string) {
-    return this.request(`/academic-years?schoolId=${schoolId}`);
+  async getAllAcademicYears() {
+    return this.request('/academic-years/all');
+  }
+
+  async getAcademicYear(id: string) {
+    return this.request(`/academic-years/${id}`);
+  }
+
+  async getAcademicYears(schoolId: string, branchId?: string) {
+    const params = new URLSearchParams({ schoolId });
+    if (branchId) params.append('branchId', branchId);
+    return this.request(`/academic-years?${params.toString()}`);
   }
 
   async createAcademicYear(data: any) {

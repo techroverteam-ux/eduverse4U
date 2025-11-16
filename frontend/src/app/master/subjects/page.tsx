@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { GraduationCap, Search, Plus, Edit, Eye, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
 import { toast } from "@/components/ui/toast"
 import { masterAPI } from "@/lib/api/master"
+import { useFilters } from "@/hooks/useFilters"
 
 interface Subject {
   id: string
@@ -20,9 +21,13 @@ export default function SubjectsPage() {
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedSchool, setSelectedSchool] = useState('all')
+  const [filterBranch, setFilterBranch] = useState('all')
   const [filterType, setFilterType] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(12)
+  
+  const { filters, loading: filtersLoading, getFilteredBranches } = useFilters()
 
   useEffect(() => {
     fetchSubjects()
@@ -159,16 +164,38 @@ export default function SubjectsPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <select
-              className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 min-w-[150px]"
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-            >
-              <option value="all">All Types</option>
-              <option value="Core">Core</option>
-              <option value="Elective">Elective</option>
-              <option value="Optional">Optional</option>
-            </select>
+            <div className="flex gap-3 flex-wrap">
+              <select
+                className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 min-w-[150px]"
+                value={selectedSchool}
+                onChange={(e) => setSelectedSchool(e.target.value)}
+              >
+                <option value="all">All Schools</option>
+                {filters.schools.map(school => (
+                  <option key={school.id} value={school.id}>{school.name}</option>
+                ))}
+              </select>
+              <select
+                className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 min-w-[150px]"
+                value={filterBranch}
+                onChange={(e) => setFilterBranch(e.target.value)}
+              >
+                <option value="all">All Branches</option>
+                {(selectedSchool !== 'all' ? getFilteredBranches(selectedSchool) : filters.branches).map(branch => (
+                  <option key={branch.id} value={branch.name}>{branch.name}</option>
+                ))}
+              </select>
+              <select
+                className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 min-w-[150px]"
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+              >
+                <option value="all">All Types</option>
+                <option value="Core">Core</option>
+                <option value="Elective">Elective</option>
+                <option value="Optional">Optional</option>
+              </select>
+            </div>
           </div>
         </CardContent>
       </Card>

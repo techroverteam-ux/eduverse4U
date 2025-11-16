@@ -7,13 +7,27 @@ export class MasterController {
   constructor(private readonly masterService: MasterService) {}
 
   // Academic Years
+  @Get('academic-years/all')
+  async getAllAcademicYears() {
+    return await this.masterService.getAllAcademicYears();
+  }
+
+  @Get('academic-years/:id')
+  async getAcademicYear(@Param('id') id: string) {
+    return await this.masterService.getAcademicYear(id);
+  }
+
   @Get('academic-years')
-  async getAcademicYears(@Query('schoolId') schoolId: string) {
-    return await this.masterService.getAcademicYears(schoolId);
+  async getAcademicYears(
+    @Query('schoolId') schoolId: string,
+    @Query('branchId') branchId?: string
+  ) {
+    return await this.masterService.getAcademicYears(schoolId, branchId);
   }
 
   @Post('academic-years')
   async createAcademicYear(@Body() data: any) {
+    console.log('Received academic year data:', data);
     return await this.masterService.createAcademicYear(data);
   }
 

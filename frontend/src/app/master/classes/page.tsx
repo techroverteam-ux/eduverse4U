@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { BookOpen, Search, Plus, Edit, Eye, Trash2, Users, ChevronLeft, ChevronRight } from "lucide-react"
 import { toast } from "@/components/ui/toast"
 import { masterAPI } from "@/lib/api/master"
+import { useFilters } from "@/hooks/useFilters"
 
 interface Class {
   id: string
@@ -23,14 +24,45 @@ export default function ClassesPage() {
   const [classes, setClasses] = useState<Class[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedSchool, setSelectedSchool] = useState('all')
   const [filterBranch, setFilterBranch] = useState('all')
   const [filterYear, setFilterYear] = useState('all')
+  const [schoolType, setSchoolType] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(12)
+  
+  const { filters, loading: filtersLoading, getFilteredBranches } = useFilters()
+
+  // Define class ranges for different school types
+  const getClassesBySchoolType = (type: string) => {
+    switch (type) {
+      case 'primary':
+        return ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5']
+      case 'middle':
+        return ['Class 6', 'Class 7', 'Class 8']
+      case 'secondary':
+        return ['Class 9', 'Class 10']
+      case 'higher_secondary':
+        return ['Class 11', 'Class 12']
+      case 'primary_middle':
+        return ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8']
+      case 'secondary_higher':
+        return ['Class 9', 'Class 10', 'Class 11', 'Class 12']
+      default:
+        return [] // Show all classes
+    }
+  }
 
   useEffect(() => {
     fetchClasses()
-  }, [searchTerm, filterBranch, filterYear])
+  }, [selectedSchool, filterBranch, filterYear, schoolType])
+
+  useEffect(() => {
+    // Reset branch filter when school changes
+    if (selectedSchool !== 'all') {
+      setFilterBranch('all')
+    }
+  }, [selectedSchool])
 
   const handleDeleteClass = async (id: string) => {
     if (confirm('Are you sure you want to delete this class?')) {
@@ -47,7 +79,7 @@ export default function ClassesPage() {
   const fetchClasses = async () => {
     try {
       setLoading(true)
-      const schoolId = localStorage.getItem('schoolId') || 'default-school'
+      const schoolId = selectedSchool !== 'all' ? selectedSchool : (localStorage.getItem('schoolId') || 'default-school')
       const data = await masterAPI.getClasses(schoolId, filterBranch !== 'all' ? filterBranch : undefined, filterYear !== 'all' ? filterYear : undefined)
       setClasses(data || [])
     } catch (error) {
@@ -65,7 +97,12 @@ export default function ClassesPage() {
                          cls.classTeacher.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesBranch = filterBranch === 'all' || cls.branch === filterBranch
     const matchesYear = filterYear === 'all' || cls.academicYear === filterYear
-    return matchesSearch && matchesBranch && matchesYear
+    
+    // Filter by school type
+    const allowedClasses = getClassesBySchoolType(schoolType)
+    const matchesSchoolType = schoolType === 'all' || allowedClasses.length === 0 || allowedClasses.includes(cls.name)
+    
+    return matchesSearch && matchesBranch && matchesYear && matchesSchoolType
   })
 
   const totalPages = Math.ceil(filteredClasses.length / itemsPerPage)
@@ -156,15 +193,39 @@ export default function ClassesPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
+              <select
+                className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 min-w-[150px]"
+                value={selectedSchool}
+                onChange={(e) => setSelectedSchool(e.target.value)}
+              >
+                <option value="all">All Schools</option>
+                {filters.schools.map(school => (
+                  <option key={school.id} value={school.id}>{school.name}</option>
+                ))}
+              </select>
               <select
                 className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 min-w-[150px]"
                 value={filterBranch}
                 onChange={(e) => setFilterBranch(e.target.value)}
               >
                 <option value="all">All Branches</option>
-                <option value="Main Campus">Main Campus</option>
-                <option value="East Branch">East Branch</option>
+                {(selectedSchool !== 'all' ? getFilteredBranches(selectedSchool) : filters.branches).map(branch => (
+                  <option key={branch.id} value={branch.name}>{branch.name}</option>
+                ))}
+              </select>
+              <select
+                className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 min-w-[150px]"
+                value={schoolType}
+                onChange={(e) => setSchoolType(e.target.value)}
+              >
+                <option value="all">All Classes</option>
+                <option value="primary">Primary (1-5)</option>
+                <option value="middle">Middle (6-8)</option>
+                <option value="secondary">Secondary (9-10)</option>
+                <option value="higher_secondary">Higher Secondary (11-12)</option>
+                <option value="primary_middle">Primary + Middle (1-8)</option>
+                <option value="secondary_higher">Secondary + Higher (9-12)</option>
               </select>
               <select
                 className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 min-w-[150px]"
@@ -172,8 +233,9 @@ export default function ClassesPage() {
                 onChange={(e) => setFilterYear(e.target.value)}
               >
                 <option value="all">All Years</option>
-                <option value="2024-25">2024-25</option>
-                <option value="2023-24">2023-24</option>
+                {filters.academicYears.map(year => (
+                  <option key={year.id} value={year.name}>{year.name}</option>
+                ))}
               </select>
             </div>
           </div>

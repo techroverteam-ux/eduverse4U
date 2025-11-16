@@ -83,8 +83,30 @@ class SuperAdminAPI {
     });
   }
 
+  async getSchool(id: string) {
+    return this.request(`/schools/${id}`);
+  }
+
   async deleteSchool(id: string) {
     return this.request(`/schools/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async activateSchool(id: string) {
+    return this.request(`/schools/${id}/activate`, {
+      method: 'PUT',
+    });
+  }
+
+  async deactivateSchool(id: string) {
+    return this.request(`/schools/${id}/deactivate`, {
+      method: 'PUT',
+    });
+  }
+
+  async deleteBranch(id: string) {
+    return this.request(`/branches/${id}`, {
       method: 'DELETE',
     });
   }

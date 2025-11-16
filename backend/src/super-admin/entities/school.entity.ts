@@ -60,6 +60,9 @@ export class School {
   @Column({ nullable: true })
   website: string;
 
+  @Column({ type: 'text', nullable: true })
+  logo: string;
+
   // Principal Information
   @Column()
   principal: string;

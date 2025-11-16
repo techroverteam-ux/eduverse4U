@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { School } from '../../super-admin/entities/school.entity';
+import { SchoolBranch } from '../../super-admin/entities/school-branch.entity';
 
 @Entity('academic_years')
 export class AcademicYear {
@@ -36,4 +37,11 @@ export class AcademicYear {
 
   @Column()
   schoolId: string;
+
+  @ManyToOne(() => SchoolBranch)
+  @JoinColumn({ name: 'branch_id' })
+  branch: SchoolBranch;
+
+  @Column({ nullable: true })
+  branchId: string;
 }

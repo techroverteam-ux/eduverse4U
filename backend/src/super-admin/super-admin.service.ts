@@ -25,6 +25,15 @@ export class SuperAdminService {
     private userRepository: Repository<User>,
   ) {}
 
+  private getPackagePrice(packageName: string): number {
+    const prices = {
+      'basic': 2999,
+      'standard': 4999,
+      'premium': 7999
+    };
+    return prices[packageName?.toLowerCase()] || 0;
+  }
+
   // Platform Analytics
   async getPlatformAnalytics() {
     const totalSchools = await this.schoolRepository.count();
@@ -110,8 +119,29 @@ export class SuperAdminService {
 
   async createSchoolRegistration(schoolData: any) {
     try {
+      console.log('=== SCHOOL REGISTRATION START ===');
+      console.log('Received school data keys:', Object.keys(schoolData));
+      console.log('Logo data received:', schoolData.logo ? 'YES' : 'NO');
+      console.log('Branches data received:', schoolData.branches ? `YES (${schoolData.branches.length})` : 'NO');
+      if (schoolData.logo) {
+        console.log('Logo data type:', typeof schoolData.logo);
+        console.log('Logo data length:', schoolData.logo.length);
+        console.log('Logo starts with data:', schoolData.logo.startsWith('data:'));
+      }
+      if (schoolData.branches) {
+        console.log('Branches data:', JSON.stringify(schoolData.branches, null, 2));
+      }
+      
+      // Validate required fields
+      if (!schoolData.schoolName) {
+        throw new Error('School name is required');
+      }
+      if (!schoolData.schoolCode) {
+        throw new Error('School code is required');
+      }
+      
       // Create comprehensive school record
-      const school = this.schoolRepository.create({
+      const schoolEntity = {
         name: schoolData.schoolName,
         schoolCode: schoolData.schoolCode,
         registrationNumber: schoolData.registrationNumber,
@@ -129,8 +159,8 @@ export class SuperAdminService {
         country: schoolData.country || 'India',
         
         // Contact
-        email: schoolData.contactEmail || schoolData.principalEmail,
-        phone: schoolData.contactPhone || schoolData.principalPhone,
+        email: schoolData.adminEmail || schoolData.contactEmail || schoolData.principalEmail,
+        phone: schoolData.principalPhone || schoolData.contactPhone,
         website: schoolData.website,
         
         // Principal
@@ -168,38 +198,81 @@ export class SuperAdminService {
         // Business
         selectedPackage: schoolData.selectedPackage,
         status: 'Pending',
-        monthlyRevenue: 0
-      });
+        monthlyRevenue: this.getPackagePrice(schoolData.selectedPackage),
+        totalBranches: (schoolData.branches && schoolData.branches.length > 0) ? schoolData.branches.length : 1,
+        
+        // Logo - store the base64 data directly
+        logo: schoolData.logo || null
+      };
+      
+      console.log('Creating school entity with logo:', schoolEntity.logo ? 'YES' : 'NO');
+      const school = this.schoolRepository.create(schoolEntity);
 
       const savedSchool = await this.schoolRepository.save(school);
+      console.log('=== SCHOOL SAVE RESULT ===');
+      console.log('Saved school ID:', savedSchool.id);
+      console.log('Saved school with logo:', savedSchool.logo ? 'YES' : 'NO');
+      if (savedSchool.logo) {
+        console.log('Saved logo length:', savedSchool.logo.length);
+      }
       
-      // Save branches if provided
+      // Always create at least one default branch (main branch)
+      const branches = [];
+      
       if (schoolData.branches && schoolData.branches.length > 0) {
-        const branches = schoolData.branches.map((branch, index) => 
-          this.schoolBranchRepository.create({
+        // Create branches from registration form
+        console.log('Creating branches from registration:', schoolData.branches.length);
+        branches.push(...schoolData.branches.map((branch, index) => {
+          const branchEntity = this.schoolBranchRepository.create({
             schoolId: savedSchool.id,
-            name: branch.branchName || `Branch ${index + 1}`,
-            branchCode: branch.branchCode || `BR${index + 1}`,
-            address: branch.address || schoolData.addressLine1,
+            name: branch.branchName || branch.name || `${schoolData.schoolName} - Branch ${index + 1}`,
+            branchCode: branch.branchCode || `${schoolData.schoolCode}-BR${String(index + 1).padStart(2, '0')}`,
+            address: branch.address || branch.addressLine1 || schoolData.addressLine1,
             city: branch.city || schoolData.city,
             state: branch.state || schoolData.state,
             pincode: branch.pincode || schoolData.pincode,
-            phone: branch.phone || schoolData.contactPhone,
-            email: branch.email || schoolData.contactEmail,
-            branchManager: branch.branchManager || schoolData.principalName,
-            managerPhone: branch.managerPhone || schoolData.principalPhone,
-            managerEmail: branch.managerEmail || schoolData.principalEmail,
-            students: branch.students || 0,
-            teachers: branch.teachers || 0,
-            classrooms: branch.classrooms || 0,
+            phone: branch.phone || branch.contactPhone || schoolData.principalPhone,
+            email: branch.email || branch.contactEmail || schoolData.adminEmail,
+            branchManager: branch.branchManager || branch.managerName || schoolData.principalName,
+            managerPhone: branch.managerPhone || branch.phone || schoolData.principalPhone,
+            managerEmail: branch.managerEmail || branch.email || schoolData.principalEmail,
+            students: parseInt(branch.students) || parseInt(branch.totalStudents) || 0,
+            teachers: parseInt(branch.teachers) || parseInt(branch.totalTeachers) || 0,
+            classrooms: parseInt(branch.classrooms) || parseInt(branch.totalClassrooms) || 0,
             status: 'Active',
             isMainBranch: index === 0
+          });
+          console.log(`Branch ${index + 1} entity:`, branchEntity);
+          return branchEntity;
+        }));
+      } else {
+        // Create default branch with actual school details
+        branches.push(
+          this.schoolBranchRepository.create({
+            schoolId: savedSchool.id,
+            name: schoolData.schoolName,
+            branchCode: schoolData.schoolCode,
+            address: schoolData.addressLine1,
+            city: schoolData.city,
+            state: schoolData.state,
+            pincode: schoolData.pincode,
+            phone: schoolData.principalPhone,
+            email: schoolData.adminEmail,
+            branchManager: schoolData.principalName,
+            managerPhone: schoolData.principalPhone,
+            managerEmail: schoolData.principalEmail,
+            students: schoolData.totalStudents || 0,
+            teachers: schoolData.totalTeachers || 0,
+            classrooms: schoolData.totalClassrooms || 0,
+            status: 'Active',
+            isMainBranch: true
           })
         );
-        
-        await this.schoolBranchRepository.save(branches);
-        console.log(`Saved ${branches.length} branches for school:`, savedSchool.id);
       }
+      
+      const savedBranches = await this.schoolBranchRepository.save(branches);
+      console.log(`Saved ${savedBranches.length} branches for school:`, savedSchool.id);
+      console.log('Saved branches:', savedBranches.map(b => ({ id: b.id, name: b.name, schoolId: b.schoolId })));
       
       console.log('School registration saved:', savedSchool.id);
       
@@ -221,8 +294,65 @@ export class SuperAdminService {
     return await this.getSchoolById(id);
   }
 
+  async activateSchool(id: string) {
+    try {
+      const school = await this.schoolRepository.findOne({ where: { id } });
+      if (!school) {
+        throw new Error('School not found');
+      }
+      
+      await this.schoolRepository.update(id, { 
+        status: 'Active',
+        subscriptionStartDate: new Date(),
+        subscriptionEndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
+      });
+      
+      return { success: true, message: 'School activated successfully' };
+    } catch (error) {
+      throw new Error(`Failed to activate school: ${error.message}`);
+    }
+  }
+
+  async deactivateSchool(id: string) {
+    try {
+      const school = await this.schoolRepository.findOne({ where: { id } });
+      if (!school) {
+        throw new Error('School not found');
+      }
+      
+      await this.schoolRepository.update(id, { status: 'Inactive' });
+      
+      return { success: true, message: 'School deactivated successfully' };
+    } catch (error) {
+      throw new Error(`Failed to deactivate school: ${error.message}`);
+    }
+  }
+
   async deleteSchool(id: string) {
-    return await this.schoolRepository.delete(id);
+    try {
+      // Check if school exists
+      const school = await this.schoolRepository.findOne({ where: { id } });
+      if (!school) {
+        throw new Error('School not found');
+      }
+      
+      // Delete related records first
+      await this.schoolBranchRepository.delete({ schoolId: id });
+      await this.billingRepository.delete({ schoolId: id });
+      await this.userRepository.delete({ schoolId: id });
+      
+      // Delete the school
+      const result = await this.schoolRepository.delete(id);
+      
+      if (result.affected === 0) {
+        throw new Error('School not found or already deleted');
+      }
+      
+      return { success: true, message: 'School deleted successfully' };
+    } catch (error) {
+      console.error('Delete school error:', error);
+      throw new Error(`Failed to delete school: ${error.message}`);
+    }
   }
 
   // Users Management
@@ -427,61 +557,41 @@ export class SuperAdminService {
   // Get All Branches
   async getAllBranches(filters?: any) {
     try {
-      const branches = await this.schoolBranchRepository.find({
-        relations: ['school']
-      });
+      console.log('Fetching all branches with filters:', filters);
       
-      if (branches.length === 0) {
-        // Return mock data if no branches found
-        return [
-          {
-            id: '1',
-            schoolId: 'school1',
-            schoolName: 'Delhi Public School',
-            name: 'Main Campus',
-            address: '123 Main Street',
-            city: 'Delhi',
-            state: 'Delhi',
-            principal: 'Dr. Sharma',
-            email: 'main@dps.edu',
-            phone: '+91-9876543210',
-            students: 1200,
-            teachers: 45,
-            status: 'Active'
-          },
-          {
-            id: '2',
-            schoolId: 'school1',
-            schoolName: 'Delhi Public School',
-            name: 'East Branch',
-            address: '456 East Avenue',
-            city: 'Delhi',
-            state: 'Delhi',
-            principal: 'Mrs. Gupta',
-            email: 'east@dps.edu',
-            phone: '+91-9876543211',
-            students: 800,
-            teachers: 32,
-            status: 'Active'
-          }
-        ];
+      const queryBuilder = this.schoolBranchRepository.createQueryBuilder('branch')
+        .leftJoinAndSelect('branch.school', 'school');
+      
+      if (filters?.schoolId) {
+        queryBuilder.where('branch.schoolId = :schoolId', { schoolId: filters.schoolId });
       }
       
-      return branches.map(branch => ({
-        id: branch.id,
-        schoolId: branch.schoolId,
-        schoolName: branch.school?.name || 'Unknown School',
-        name: branch.name,
-        address: branch.address,
-        city: branch.city,
-        state: branch.state,
-        principal: branch.branchManager || 'Not Assigned',
-        email: branch.email,
-        phone: branch.phone,
-        students: branch.students || 0,
-        teachers: branch.teachers || 0,
-        status: branch.status || 'Active'
-      }));
+      const branches = await queryBuilder.getMany();
+      console.log(`Found ${branches.length} branches`);
+      
+      return branches.map(branch => {
+        console.log(`Mapping branch: ${branch.name} for school: ${branch.school?.name}`);
+        return {
+          id: branch.id,
+          schoolId: branch.schoolId,
+          schoolName: branch.school?.name || 'Unknown School',
+          name: branch.name,
+          branchCode: branch.branchCode,
+          address: branch.address,
+          city: branch.city,
+          state: branch.state,
+          pincode: branch.pincode,
+          principal: branch.branchManager || 'Not Assigned',
+          email: branch.email,
+          phone: branch.phone,
+          students: branch.students || 0,
+          teachers: branch.teachers || 0,
+          classrooms: branch.classrooms || 0,
+          status: branch.status || 'Active',
+          isMainBranch: branch.isMainBranch || false,
+          createdAt: branch.createdAt
+        };
+      });
     } catch (error) {
       console.error('Error fetching branches:', error);
       return [];

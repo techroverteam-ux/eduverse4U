@@ -21,11 +21,12 @@ const sidebarItems = {
       label: 'Master Data', 
       href: '/super-admin/master',
       subItems: [
-        { label: 'Students', href: '/master/students' },
-        { label: 'Teachers', href: '/master/teachers' },
+        { label: 'Academic Years', href: '/master/academic-years' },
         { label: 'Classes', href: '/master/classes' },
         { label: 'Subjects', href: '/master/subjects' },
-        { label: 'Academic Years', href: '/master/academic-years' },
+        { label: 'Class-Subject Mapping', href: '/master/class-subject-mappings' },
+        { label: 'Teachers', href: '/master/teachers' },
+        { label: 'Students', href: '/master/students' },
         { label: 'Fee Structure', href: '/master/fee-structures' }
       ]
     },
@@ -40,11 +41,12 @@ const sidebarItems = {
       label: 'Master Data', 
       href: '/master',
       subItems: [
-        { label: 'Students', href: '/master/students' },
-        { label: 'Teachers', href: '/master/teachers' },
+        { label: 'Academic Years', href: '/master/academic-years' },
         { label: 'Classes', href: '/master/classes' },
         { label: 'Subjects', href: '/master/subjects' },
-        { label: 'Academic Years', href: '/master/academic-years' },
+        { label: 'Class-Subject Mapping', href: '/master/class-subject-mappings' },
+        { label: 'Teachers', href: '/master/teachers' },
+        { label: 'Students', href: '/master/students' },
         { label: 'Fee Structure', href: '/master/fee-structures' }
       ]
     },
@@ -160,7 +162,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 ${theme.sidebar} shadow-2xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-56 ${theme.sidebar} shadow-2xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
@@ -182,84 +184,59 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <nav className="mt-6 px-3">
-          {sidebarItems[currentUser.role as keyof typeof sidebarItems]?.map((item, index) => (
-            <div key={item.href} className="mb-2">
-              <a
-                href={(item as any).subItems ? '#' : item.href}
-                onClick={(item as any).subItems ? (e) => { e.preventDefault(); toggleSubmenu(item.label) } : undefined}
-                className={`flex items-center px-4 py-3 ${theme.sidebarText} rounded-xl ${theme.sidebarHover} transition-all duration-200 group relative overflow-hidden ${
-                  pathname === item.href ? 'bg-white/10' : ''
-                }`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <item.icon className="h-5 w-5 mr-3 group-hover:scale-110 transition-transform relative z-10" />
-                <span className="font-medium relative z-10 flex-1">{item.label}</span>
-                {(item as any).subItems && (
-                  <div className={`transform transition-transform duration-200 ${
-                    expandedMenus.includes(item.label) ? 'rotate-90' : ''
-                  }`}>
-                    <ChevronRight className="h-4 w-4" />
+        <nav className="flex-1 px-3 py-4 overflow-hidden">
+          <div className="space-y-1">
+            {sidebarItems[currentUser.role as keyof typeof sidebarItems]?.map((item, index) => (
+              <div key={item.href}>
+                <a
+                  href={(item as any).subItems ? '#' : item.href}
+                  onClick={(item as any).subItems ? (e) => { e.preventDefault(); toggleSubmenu(item.label) } : undefined}
+                  className={`flex items-center px-3 py-2 ${theme.sidebarText} rounded-lg ${theme.sidebarHover} transition-all duration-200 group ${
+                    pathname === item.href ? 'bg-white/10' : ''
+                  }`}
+                >
+                  <item.icon className="h-4 w-4 mr-3 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-medium flex-1">{item.label}</span>
+                  {(item as any).subItems && (
+                    <ChevronRight className={`h-3 w-3 transition-transform duration-200 ${
+                      expandedMenus.includes(item.label) ? 'rotate-90' : ''
+                    }`} />
+                  )}
+                </a>
+                
+                {(item as any).subItems && expandedMenus.includes(item.label) && (
+                  <div className="ml-6 mt-1 space-y-1">
+                    {(item as any).subItems.map((subItem: any) => (
+                      <a
+                        key={subItem.href}
+                        href={subItem.href}
+                        className={`flex items-center px-3 py-1.5 text-xs ${theme.sidebarText} rounded-md hover:bg-white/5 transition-all duration-200 ${
+                          pathname === subItem.href ? 'bg-white/10 font-medium' : ''
+                        }`}
+                      >
+                        <div className="w-1.5 h-1.5 bg-white/40 rounded-full mr-2"></div>
+                        {subItem.label}
+                      </a>
+                    ))}
                   </div>
                 )}
-                {pathname === item.href && <div className="absolute right-2 w-2 h-2 bg-white rounded-full"></div>}
-              </a>
-              
-              {(item as any).subItems && expandedMenus.includes(item.label) && (
-                <div className="ml-8 mt-2 space-y-1">
-                  {(item as any).subItems.map((subItem: any, subIndex: number) => (
-                    <a
-                      key={subItem.href}
-                      href={subItem.href}
-                      className={`flex items-center px-3 py-2 text-sm ${theme.sidebarText} rounded-lg hover:bg-white/5 transition-all duration-200 ${
-                        pathname === subItem.href ? 'bg-white/10 font-medium' : ''
-                      }`}
-                    >
-                      <div className="w-2 h-2 bg-white/40 rounded-full mr-3"></div>
-                      {subItem.label}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+              </div>
+            ))}
+          </div>
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className={`w-10 h-10 ${theme.badge} rounded-full flex items-center justify-center shadow-lg`}>
-              <User className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-white">{currentUser.name}</p>
-              <p className="text-xs text-white/70">{currentUser.email}</p>
-              <p className={`text-xs ${theme.accent} font-semibold uppercase tracking-wide`}>{currentUser.role.replace('_', ' ')}</p>
-            </div>
-          </div>
-          <button 
-            className="w-full flex items-center justify-start px-3 py-2 text-white/80 hover:bg-white/10 hover:text-white rounded transition-colors"
-            onClick={() => {
-              localStorage.removeItem('user')
-              localStorage.removeItem('token')
-              window.location.href = '/login'
-            }}
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </button>
-        </div>
+
       </div>
 
-      <div className="lg:ml-64">
-        <header className="bg-white/80 backdrop-blur-md shadow-lg border-b h-16 flex items-center justify-between px-6">
-          <button
-            className="lg:hidden p-2 rounded hover:bg-gray-100"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          
-          <div className="flex items-center space-x-4">
+      <div className="lg:ml-56">
+        <header className="sticky top-0 bg-white/95 backdrop-blur-md shadow-sm border-b h-14 flex items-center justify-between px-4 z-40">
+          <div className="flex items-center gap-4">
+            <button
+              className="lg:hidden p-1.5 rounded hover:bg-gray-100"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu className="h-4 w-4" />
+            </button>
             <div className="text-sm font-medium text-gray-600">
               {isSuperAdmin ? 'Platform Administrator' : 
                isAdmin ? 'School Administrator' : 
@@ -269,9 +246,34 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                currentUser.role === 'teacher' ? 'Teaching Portal' :
                currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}
             </div>
-            <button className="relative p-2 rounded hover:bg-gray-100">
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse"></span>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <button className="relative p-1.5 rounded hover:bg-gray-100">
+              <Bell className="h-4 w-4" />
+              <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
+            </button>
+            
+            <div className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-50">
+              <div className={`w-7 h-7 ${theme.badge} rounded-full flex items-center justify-center`}>
+                <User className="h-3 w-3 text-white" />
+              </div>
+              <div className="text-right">
+                <p className="text-xs font-medium text-gray-900">{currentUser.name}</p>
+                <p className="text-xs text-gray-500 uppercase">{currentUser.role.replace('_', ' ')}</p>
+              </div>
+            </div>
+            
+            <button 
+              className="p-1.5 rounded hover:bg-gray-100 text-gray-600 hover:text-gray-900"
+              onClick={() => {
+                localStorage.removeItem('user')
+                localStorage.removeItem('token')
+                window.location.href = '/login'
+              }}
+              title="Logout"
+            >
+              <LogOut className="h-4 w-4" />
             </button>
           </div>
         </header>

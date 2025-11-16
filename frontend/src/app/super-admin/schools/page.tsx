@@ -8,9 +8,10 @@ import {
   Building2, Users, Search, Filter, Plus, Edit, Trash2, 
   Eye, MapPin, Calendar, Crown, CheckCircle, XCircle, Clock,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, AlertCircle, FileText,
-  Sparkles, TrendingUp, Award, Shield, User, X
+  Sparkles, TrendingUp, Award, Shield, User, X, Download
 } from "lucide-react"
 import { toast } from "@/components/ui/toast"
+import { generatePDFReceipt } from "@/components/ui/pdf-receipt"
 
 import { SchoolsLoadingState, EmptyState, ErrorState, LoadingSpinner } from "@/components/ui/loading-states"
 
@@ -29,6 +30,7 @@ interface School {
   joinedDate: string
   lastActive: string
   revenue: number
+  logo?: string
 }
 
 import { superAdminAPI } from "@/lib/api/super-admin"
@@ -43,13 +45,13 @@ export default function SuperAdminSchools() {
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [filterPlan, setFilterPlan] = useState<string>('all')
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null)
-  const [showBranches, setShowBranches] = useState(false)
-  const [selectedSchoolForBranches, setSelectedSchoolForBranches] = useState<string | null>(null)
-  const [branches, setBranches] = useState<any[]>([])
+
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
   const [totalCount, setTotalCount] = useState(0)
   const [isExporting, setIsExporting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [schoolToDelete, setSchoolToDelete] = useState<School | null>(null)
 
   // Fetch schools data
   useEffect(() => {
@@ -82,20 +84,25 @@ export default function SuperAdminSchools() {
     return () => clearTimeout(timeoutId)
   }, [filterStatus, filterPlan, searchTerm])
 
-  const handleDeleteSchool = async (schoolId: string) => {
+  const handleDeleteSchool = (schoolId: string) => {
     const school = schools.find(s => s.id === schoolId)
     if (!school) return
+    setSchoolToDelete(school)
+    setShowDeleteConfirm(true)
+  }
 
-    if (confirm(`⚠️ Delete ${school.name}?\n\nThis will permanently remove:\n• All school data\n• Student records\n• Teacher accounts\n• Financial records\n\nThis action cannot be undone.`)) {
-      const deletePromise = superAdminAPI.deleteSchool(schoolId)
-      
-      try {
-        await deletePromise
-        setSchools(prev => prev.filter(s => s.id !== schoolId))
-        toast.success(`${school.name} has been permanently removed`)
-      } catch (err: any) {
-        toast.error(`Failed to delete ${school.name}: ${err.message || 'Server error occurred'}`)
-      }
+  const confirmDelete = async () => {
+    if (!schoolToDelete) return
+    
+    try {
+      await superAdminAPI.deleteSchool(schoolToDelete.id)
+      setSchools(prev => prev.filter(s => s.id !== schoolToDelete.id))
+      toast.success(`${schoolToDelete.name} has been permanently removed`)
+    } catch (err: any) {
+      toast.error(`Failed to delete ${schoolToDelete.name}: ${err.message || 'Server error occurred'}`)
+    } finally {
+      setShowDeleteConfirm(false)
+      setSchoolToDelete(null)
     }
   }
 
@@ -103,14 +110,18 @@ export default function SuperAdminSchools() {
     const school = schools.find(s => s.id === schoolId)
     if (!school) return
 
-    const updatePromise = superAdminAPI.updateSchool(schoolId, { status: newStatus })
-    
     try {
-      await updatePromise
+      if (newStatus === 'Active') {
+        await superAdminAPI.activateSchool(schoolId)
+        toast.success(`🟢 ${school.name} activated successfully`, 'School users can now access their accounts')
+      } else {
+        await superAdminAPI.deactivateSchool(schoolId)
+        toast.success(`🔴 ${school.name} deactivated`, 'School access has been suspended')
+      }
+      
       setSchools(prev => prev.map(s => 
         s.id === schoolId ? { ...s, status: newStatus as any } : s
       ))
-      toast.success(`${school.name} status updated to ${newStatus}`)
     } catch (err: any) {
       toast.error(`Status update failed: ${err.message || 'Please try again'}`)
     }
@@ -157,16 +168,7 @@ export default function SuperAdminSchools() {
     toast.info(`Page ${newPage}`, `Viewing page ${newPage} of ${totalPages}`)
   }
 
-  const fetchBranches = async (schoolId: string) => {
-    try {
-      const response = await superAdminAPI.getSchoolBranches(schoolId)
-      setBranches(response || [])
-    } catch (error) {
-      console.error('Failed to fetch branches:', error)
-      setBranches([])
-      toast.error('Failed to load branches', 'Unable to fetch school branches')
-    }
-  }
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -352,14 +354,7 @@ export default function SuperAdminSchools() {
                 <option value="standard">Standard</option>
                 <option value="basic">Basic</option>
               </select>
-              <Button 
-                variant="outline" 
-                className="px-4 py-3 border-gray-200 hover:bg-gray-50"
-                onClick={() => setShowBranches(true)}
-              >
-                <Building2 className="h-4 w-4 mr-2" />
-                Branches
-              </Button>
+
             </div>
           </div>
         </CardContent>
@@ -451,8 +446,28 @@ export default function SuperAdminSchools() {
                     <tr key={school.id} className="border-b hover:bg-gray-50 transition-colors">
                       <td className="py-4 px-4">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
-                            {school.name.charAt(0)}
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden">
+                            {(school as any).logo ? (
+                              <img 
+                                src={(school as any).logo} 
+                                alt={`${school.name} logo`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  // Fallback to initials if image fails to load
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  const parent = target.parentElement;
+                                  if (parent) {
+                                    parent.className = 'w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm';
+                                    parent.textContent = school.name.charAt(0);
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
+                                {school.name.charAt(0)}
+                              </div>
+                            )}
                           </div>
                           <div>
                             <div className="font-semibold text-gray-900">{school.name}</div>
@@ -493,12 +508,33 @@ export default function SuperAdminSchools() {
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex space-x-1">
+                          {school.status === 'Active' ? (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-all duration-200 transform hover:scale-110 group" 
+                              onClick={() => handleUpdateSchoolStatus(school.id, 'Inactive')}
+                              title="Deactivate School"
+                            >
+                              <XCircle className="h-4 w-4 group-hover:animate-pulse" />
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600 transition-all duration-200 transform hover:scale-110 group" 
+                              onClick={() => handleUpdateSchoolStatus(school.id, 'Active')}
+                              title="Activate School"
+                            >
+                              <CheckCircle className="h-4 w-4 group-hover:animate-pulse" />
+                            </Button>
+                          )}
                           <Button 
                             variant="ghost" 
                             size="sm" 
                             className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 transform hover:scale-110 group" 
                             onClick={() => {
-                              setSelectedSchool(school)
+                              navigation.navigateTo(`/super-admin/schools/view/${school.id}`)
                               toast.info('📋 School Profile', `Opening detailed view for ${school.name}`)
                             }}
                           >
@@ -514,18 +550,6 @@ export default function SuperAdminSchools() {
                             }}
                           >
                             <Edit className="h-4 w-4 group-hover:rotate-12 transition-transform duration-200" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 w-8 p-0 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200 transform hover:scale-110 group"
-                            onClick={() => {
-                              setSelectedSchoolForBranches(school.id)
-                              fetchBranches(school.id)
-                              setShowBranches(true)
-                            }}
-                          >
-                            <Building2 className="h-4 w-4 group-hover:rotate-12 transition-transform duration-200" />
                           </Button>
                           <Button 
                             variant="ghost" 
@@ -637,233 +661,56 @@ export default function SuperAdminSchools() {
         </CardContent>
       </Card>
 
-      {/* Enhanced School Details Modal */}
-      {selectedSchool && (
+      {/* Delete Confirmation Popup */}
+      {showDeleteConfirm && schoolToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6">
-              <div className="flex justify-between items-start">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                  <AlertCircle className="h-6 w-6 text-red-600" />
+                </div>
                 <div>
-                  <h2 className="text-2xl font-bold">{selectedSchool.name}</h2>
-                  <p className="text-purple-100 mt-1">{selectedSchool.id}</p>
-                </div>
-                <div className="flex space-x-2">
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => window.print()}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Print
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/20" onClick={() => setSelectedSchool(null)}>
-                    <XCircle className="h-5 w-5" />
-                  </Button>
+                  <h3 className="text-lg font-semibold text-gray-900">Delete School</h3>
+                  <p className="text-sm text-gray-500">This action cannot be undone</p>
                 </div>
               </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-6 overflow-y-auto max-h-[calc(95vh-180px)]">
-              {/* Overview Cards */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <Card className="bg-blue-50 border-blue-200">
-                  <CardContent className="p-4 text-center">
-                    <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-blue-600">{selectedSchool.students?.toLocaleString()}</div>
-                    <div className="text-sm text-blue-700">Total Students</div>
-                  </CardContent>
-                </Card>
-                <Card className="bg-green-50 border-green-200">
-                  <CardContent className="p-4 text-center">
-                    <Users className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-green-600">{selectedSchool.teachers}</div>
-                    <div className="text-sm text-green-700">Total Teachers</div>
-                  </CardContent>
-                </Card>
-                <Card className="bg-purple-50 border-purple-200">
-                  <CardContent className="p-4 text-center">
-                    <Crown className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-purple-600">₹{((selectedSchool.revenue || 0) / 1000).toFixed(0)}k</div>
-                    <div className="text-sm text-purple-700">Monthly Revenue</div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Basic Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Building2 className="h-5 w-5 mr-2 text-blue-600" />
-                      School Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><span className="font-medium text-gray-600">School Name:</span></div>
-                      <div className="font-medium">{selectedSchool.name}</div>
-                      
-                      <div><span className="font-medium text-gray-600">Location:</span></div>
-                      <div className="font-medium">{selectedSchool.location}</div>
-                      
-                      <div><span className="font-medium text-gray-600">State:</span></div>
-                      <div className="font-medium">{selectedSchool.state}</div>
-                      
-                      <div><span className="font-medium text-gray-600">Phone:</span></div>
-                      <div className="font-medium">{selectedSchool.phone}</div>
-                      
-                      <div><span className="font-medium text-gray-600">Email:</span></div>
-                      <div className="font-medium">{selectedSchool.email}</div>
-                      
-                      <div><span className="font-medium text-gray-600">Principal:</span></div>
-                      <div className="font-medium">{selectedSchool.principal}</div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Subscription & Status */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Crown className="h-5 w-5 mr-2 text-yellow-600" />
-                      Subscription Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><span className="font-medium text-gray-600">Current Plan:</span></div>
-                      <div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPlanColor(selectedSchool.plan)}`}>
-                          {selectedSchool.plan}
-                        </span>
-                      </div>
-                      
-                      <div><span className="font-medium text-gray-600">Status:</span></div>
-                      <div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedSchool.status)}`}>
-                          {selectedSchool.status}
-                        </span>
-                      </div>
-                      
-                      <div><span className="font-medium text-gray-600">Monthly Revenue:</span></div>
-                      <div className="font-medium text-green-600">₹{(selectedSchool.revenue || 0).toLocaleString()}</div>
-                      
-                      <div><span className="font-medium text-gray-600">Joined Date:</span></div>
-                      <div className="font-medium">{selectedSchool.joinedDate}</div>
-                      
-                      <div><span className="font-medium text-gray-600">Last Active:</span></div>
-                      <div className="font-medium">{selectedSchool.lastActive}</div>
-                      
-                      <div><span className="font-medium text-gray-600">Students:</span></div>
-                      <div className="font-medium">{selectedSchool.students.toLocaleString()}</div>
-                      
-                      <div><span className="font-medium text-gray-600">Teachers:</span></div>
-                      <div className="font-medium">{selectedSchool.teachers}</div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-            
-            {/* Footer Actions */}
-            <div className="border-t bg-gray-50 px-6 py-4 flex justify-between">
-              <Button variant="outline" onClick={() => setSelectedSchool(null)}>
-                Close
-              </Button>
-              <div className="flex space-x-3">
-                <Button variant="outline" onClick={() => window.print()}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Print Receipt
-                </Button>
-                <Button className="bg-gradient-to-r from-purple-600 to-blue-600" onClick={() => navigation.navigateTo(`/super-admin/schools/edit/${selectedSchool.id}`)}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit School
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Branches Modal */}
-      {showBranches && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold">School Branches</h2>
-                  <p className="text-purple-100 mt-1">Manage all branches for this school</p>
+              
+              <div className="mb-6">
+                <p className="text-gray-700 mb-4">
+                  Are you sure you want to delete <strong>{schoolToDelete.name}</strong>?
+                </p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm text-red-800 font-medium mb-2">This will permanently remove:</p>
+                  <ul className="text-sm text-red-700 space-y-1">
+                    <li>• All school data and settings</li>
+                    <li>• {schoolToDelete.students?.toLocaleString() || 0} student records</li>
+                    <li>• {schoolToDelete.teachers || 0} teacher accounts</li>
+                    <li>• Financial and billing records</li>
+                    <li>• All academic year data</li>
+                  </ul>
                 </div>
+              </div>
+              
+              <div className="flex gap-3">
                 <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-white hover:bg-white/20" 
-                  onClick={() => setShowBranches(false)}
+                  variant="outline" 
+                  className="flex-1" 
+                  onClick={() => {
+                    setShowDeleteConfirm(false)
+                    setSchoolToDelete(null)
+                  }}
                 >
-                  <X className="h-5 w-5" />
+                  Cancel
+                </Button>
+                <Button 
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white" 
+                  onClick={confirmDelete}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete School
                 </Button>
               </div>
-            </div>
-
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-              {branches.length === 0 ? (
-                <div className="text-center py-8">
-                  <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">No branches found for this school</p>
-                  <Button className="bg-gradient-to-r from-purple-600 to-blue-600">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add First Branch
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {branches.map((branch, index) => (
-                    <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold text-gray-900">{branch.name || `Branch ${index + 1}`}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          branch.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {branch.status || 'Active'}
-                        </span>
-                      </div>
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-2" />
-                          <span>{branch.address || 'Address not provided'}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-2" />
-                          <span>{branch.students || 0} students</span>
-                        </div>
-                        <div className="flex items-center">
-                          <User className="h-4 w-4 mr-2" />
-                          <span>{branch.principal || 'Principal not assigned'}</span>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2 mt-4">
-                        <Button variant="outline" size="sm" className="flex-1">
-                          <Eye className="h-3 w-3 mr-1" />
-                          View
-                        </Button>
-                        <Button variant="outline" size="sm" className="flex-1">
-                          <Edit className="h-3 w-3 mr-1" />
-                          Edit
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="border-t bg-gray-50 px-6 py-4 flex justify-between">
-              <Button variant="outline" onClick={() => setShowBranches(false)}>
-                Close
-              </Button>
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600">
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Branch
-              </Button>
             </div>
           </div>
         </div>

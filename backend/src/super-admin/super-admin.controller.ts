@@ -48,6 +48,16 @@ export class SuperAdminController {
     return await this.superAdminService.updateSchool(id, schoolData);
   }
 
+  @Put('schools/:id/activate')
+  async activateSchool(@Param('id') id: string) {
+    return await this.superAdminService.activateSchool(id);
+  }
+
+  @Put('schools/:id/deactivate')
+  async deactivateSchool(@Param('id') id: string) {
+    return await this.superAdminService.deactivateSchool(id);
+  }
+
   @Delete('schools/:id')
   async deleteSchool(@Param('id') id: string) {
     return await this.superAdminService.deleteSchool(id);

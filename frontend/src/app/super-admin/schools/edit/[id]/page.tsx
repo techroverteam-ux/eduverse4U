@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { useNavigation } from "@/hooks/useNavigation"
 import { superAdminAPI } from "@/lib/api/super-admin"
+import { toast } from "@/components/ui/toast"
 import { 
   Building2, Users, MapPin, Save, ArrowLeft, Loader2, AlertCircle, Upload
 } from "lucide-react"
@@ -72,6 +73,16 @@ export default function EditSchoolPage({ params }: { params: { id: string } }) {
 
     setSaving(true)
     try {
+      // Convert logo to base64 if it's a new file
+      let logoData = (schoolData as any).logo
+      if (schoolData.logo instanceof File) {
+        const reader = new FileReader()
+        logoData = await new Promise((resolve) => {
+          reader.onload = (e) => resolve(e.target?.result)
+          reader.readAsDataURL(schoolData.logo!)
+        })
+      }
+
       const updateData = {
         name: schoolData.name,
         schoolCode: schoolData.schoolCode,
@@ -87,10 +98,12 @@ export default function EditSchoolPage({ params }: { params: { id: string } }) {
         students: schoolData.students,
         teachers: schoolData.teachers,
         selectedPackage: schoolData.selectedPackage,
-        status: schoolData.status
+        status: schoolData.status,
+        logo: logoData
       }
       
       await superAdminAPI.updateSchool(params.id, updateData)
+      toast.success('School Updated', `${schoolData.name} has been updated successfully`)
       navigation.navigateToSchools()
     } catch (err) {
       console.error('Failed to update school:', err)
@@ -170,27 +183,63 @@ export default function EditSchoolPage({ params }: { params: { id: string } }) {
               </div>
               <div>
                 <Label className="text-xs">Logo</Label>
-                <div className="border border-dashed border-gray-300 rounded p-3 text-center">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    id="logo-upload"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) updateField('logo', file)
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => document.getElementById('logo-upload')?.click()}
-                  >
-                    <Upload className="h-3 w-3 mr-1" />
-                    {schoolData.logo ? 'Change' : 'Upload'}
-                  </Button>
-                  {schoolData.logo && <p className="text-xs text-gray-600 mt-1">{schoolData.logo.name}</p>}
+                <div className="space-y-2">
+                  {/* Current Logo Display */}
+                  <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-lg overflow-hidden border border-gray-200">
+                    {(schoolData as any).logo && typeof (schoolData as any).logo === 'string' ? (
+                      <img 
+                        src={(schoolData as any).logo} 
+                        alt="Current logo"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : schoolData.logo instanceof File ? (
+                      <img 
+                        src={URL.createObjectURL(schoolData.logo)} 
+                        alt="New logo preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+                        {schoolData.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Upload Button */}
+                  <div className="text-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      id="logo-upload"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          // Validate file size (max 2MB)
+                          if (file.size > 2 * 1024 * 1024) {
+                            setError('Logo file size must be less than 2MB')
+                            toast.error('File too large', 'Logo file size must be less than 2MB')
+                            return
+                          }
+                          updateField('logo', file)
+                          setError(null)
+                          toast.success('Logo Selected', `${file.name} has been selected as new logo`)
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('logo-upload')?.click()}
+                    >
+                      <Upload className="h-3 w-3 mr-1" />
+                      {(schoolData as any).logo ? 'Change' : 'Upload'}
+                    </Button>
+                    {schoolData.logo instanceof File && (
+                      <p className="text-xs text-green-600 mt-1">{schoolData.logo.name}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </CardContent>

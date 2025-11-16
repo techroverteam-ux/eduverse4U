@@ -33,21 +33,22 @@ export class MasterService {
   ) {}
 
   // Academic Years
-  async getAcademicYears(schoolId: string) {
+  async getAllAcademicYears() {
     try {
-      const academicYears = await this.academicYearRepository.find({
-        where: { schoolId },
-        order: { startDate: 'DESC' }
-      });
+      let academicYears = await this.academicYearRepository.createQueryBuilder('ay')
+        .leftJoinAndSelect('ay.school', 'school')
+        .leftJoinAndSelect('ay.branch', 'branch')
+        .orderBy('ay.startDate', 'DESC')
+        .getMany();
 
-      // If no academic years exist, create sample data
-      if (academicYears.length === 0) {
-        await this.seedAcademicYears(schoolId);
-        return await this.academicYearRepository.find({
-          where: { schoolId },
-          order: { startDate: 'DESC' }
-        });
-      }
+      console.log('Raw academic years from DB:', academicYears.map(ay => ({
+        id: ay.id,
+        name: ay.name,
+        schoolId: ay.schoolId,
+        branchId: ay.branchId,
+        schoolName: ay.school?.name,
+        branchName: ay.branch?.name
+      })));
 
       return academicYears.map(ay => ({
         id: ay.id,
@@ -57,7 +58,43 @@ export class MasterService {
         isActive: ay.isActive,
         isCurrent: ay.isCurrent,
         schoolId: ay.schoolId,
-        schoolName: 'Demo School' // This should come from school entity
+        branchId: ay.branchId,
+        description: ay.description,
+        schoolName: ay.school?.name || 'Unknown School',
+        branchName: ay.branch?.name || 'All Branches'
+      }));
+    } catch (error) {
+      console.error('Error fetching all academic years:', error);
+      return [];
+    }
+  }
+
+  async getAcademicYears(schoolId: string, branchId?: string) {
+    try {
+      let query = this.academicYearRepository.createQueryBuilder('ay')
+        .leftJoinAndSelect('ay.school', 'school')
+        .leftJoinAndSelect('ay.branch', 'branch')
+        .where('ay.schoolId = :schoolId', { schoolId })
+        .orderBy('ay.startDate', 'DESC');
+
+      if (branchId) {
+        query.andWhere('ay.branchId = :branchId', { branchId });
+      }
+
+      let academicYears = await query.getMany();
+
+      return academicYears.map(ay => ({
+        id: ay.id,
+        name: ay.name,
+        startDate: ay.startDate,
+        endDate: ay.endDate,
+        isActive: ay.isActive,
+        isCurrent: ay.isCurrent,
+        schoolId: ay.schoolId,
+        branchId: ay.branchId,
+        description: ay.description,
+        schoolName: ay.school?.name || 'Demo School',
+        branchName: ay.branch?.name || 'Main Branch'
       }));
     } catch (error) {
       console.error('Error fetching academic years:', error);
@@ -65,9 +102,20 @@ export class MasterService {
     }
   }
 
+  async getAcademicYear(id: string) {
+    return await this.academicYearRepository.findOne({ 
+      where: { id },
+      relations: ['school', 'branch']
+    });
+  }
+
   async createAcademicYear(data: any) {
+    console.log('Creating academic year with data:', data);
     const academicYear = this.academicYearRepository.create(data);
-    return await this.academicYearRepository.save(academicYear);
+    console.log('Created entity:', academicYear);
+    const saved = await this.academicYearRepository.save(academicYear);
+    console.log('Saved academic year:', saved);
+    return saved;
   }
 
   async updateAcademicYear(id: string, data: any) {
@@ -103,8 +151,8 @@ export class MasterService {
         schoolId: cls.schoolId,
         branchId: cls.branchId,
         academicYearId: cls.academicYearId,
-        capacity: cls.capacity,
-        currentStrength: cls.currentStrength
+        capacity: cls.maxStudents,
+        currentStrength: cls.currentStudents
       }));
     } catch (error) {
       console.error('Error fetching classes:', error);
@@ -540,7 +588,8 @@ export class MasterService {
         endDate: new Date('2024-03-31'),
         isActive: true,
         isCurrent: true,
-        schoolId
+        schoolId,
+        branchId: `${schoolId}-branch-main`
       },
       {
         name: '2024-25',
@@ -548,7 +597,8 @@ export class MasterService {
         endDate: new Date('2025-03-31'),
         isActive: false,
         isCurrent: false,
-        schoolId
+        schoolId,
+        branchId: `${schoolId}-branch-main`
       },
       {
         name: '2022-23',
@@ -556,7 +606,8 @@ export class MasterService {
         endDate: new Date('2023-03-31'),
         isActive: false,
         isCurrent: false,
-        schoolId
+        schoolId,
+        branchId: `${schoolId}-branch-main`
       }
     ];
 
@@ -572,21 +623,21 @@ export class MasterService {
 
   private async seedClasses(schoolId: string) {
     const classes = [
-      { name: 'Class 1', section: 'A', capacity: 30, currentStrength: 25, schoolId },
-      { name: 'Class 1', section: 'B', capacity: 30, currentStrength: 28, schoolId },
-      { name: 'Class 2', section: 'A', capacity: 30, currentStrength: 27, schoolId },
-      { name: 'Class 3', section: 'A', capacity: 30, currentStrength: 29, schoolId },
-      { name: 'Class 4', section: 'A', capacity: 30, currentStrength: 26, schoolId },
-      { name: 'Class 5', section: 'A', capacity: 30, currentStrength: 24, schoolId },
-      { name: 'Class 6', section: 'A', capacity: 35, currentStrength: 32, schoolId },
-      { name: 'Class 7', section: 'A', capacity: 35, currentStrength: 30, schoolId },
-      { name: 'Class 8', section: 'A', capacity: 35, currentStrength: 33, schoolId },
-      { name: 'Class 9', section: 'A', capacity: 40, currentStrength: 38, schoolId },
-      { name: 'Class 10', section: 'A', capacity: 40, currentStrength: 35, schoolId },
-      { name: 'Class 11', section: 'Science', capacity: 30, currentStrength: 28, schoolId },
-      { name: 'Class 11', section: 'Commerce', capacity: 30, currentStrength: 25, schoolId },
-      { name: 'Class 12', section: 'Science', capacity: 30, currentStrength: 27, schoolId },
-      { name: 'Class 12', section: 'Commerce', capacity: 30, currentStrength: 23, schoolId }
+      { name: 'Class 1', section: 'A', maxStudents: 30, currentStudents: 25, schoolId },
+      { name: 'Class 1', section: 'B', maxStudents: 30, currentStudents: 28, schoolId },
+      { name: 'Class 2', section: 'A', maxStudents: 30, currentStudents: 27, schoolId },
+      { name: 'Class 3', section: 'A', maxStudents: 30, currentStudents: 29, schoolId },
+      { name: 'Class 4', section: 'A', maxStudents: 30, currentStudents: 26, schoolId },
+      { name: 'Class 5', section: 'A', maxStudents: 30, currentStudents: 24, schoolId },
+      { name: 'Class 6', section: 'A', maxStudents: 35, currentStudents: 32, schoolId },
+      { name: 'Class 7', section: 'A', maxStudents: 35, currentStudents: 30, schoolId },
+      { name: 'Class 8', section: 'A', maxStudents: 35, currentStudents: 33, schoolId },
+      { name: 'Class 9', section: 'A', maxStudents: 40, currentStudents: 38, schoolId },
+      { name: 'Class 10', section: 'A', maxStudents: 40, currentStudents: 35, schoolId },
+      { name: 'Class 11', section: 'Science', maxStudents: 30, currentStudents: 28, schoolId },
+      { name: 'Class 11', section: 'Commerce', maxStudents: 30, currentStudents: 25, schoolId },
+      { name: 'Class 12', section: 'Science', maxStudents: 30, currentStudents: 27, schoolId },
+      { name: 'Class 12', section: 'Commerce', maxStudents: 30, currentStudents: 23, schoolId }
     ];
 
     for (const cls of classes) {

@@ -28,11 +28,12 @@ export const useFilters = () => {
     try {
       setLoading(true)
       
-      // Create default school if none exists
+      // Fetch schools from super admin API
       let schools = await superAdminAPI.getAllSchools().catch(() => [])
+      console.log('Fetched schools:', schools)
       
       if (schools.length === 0) {
-        // Create a default school for demo purposes
+        console.log('No schools found, using demo data')
         schools = [{
           id: 'default-school-1',
           name: 'Demo Public School',
@@ -41,7 +42,10 @@ export const useFilters = () => {
           email: 'demo@school.edu',
           principalName: 'Dr. Demo Principal'
         }]
-        // Store the default school ID
+      }
+      
+      // Store the first school ID as default
+      if (schools.length > 0) {
         localStorage.setItem('schoolId', schools[0].id)
       }
       

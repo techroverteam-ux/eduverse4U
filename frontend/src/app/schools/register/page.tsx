@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { useNavigation } from "@/hooks/useNavigation"
 import { api } from "@/lib/api"
+import { toast } from "@/components/ui/toast"
 import { 
   Building2, Users, MapPin, Phone, Mail, Calendar,
   CheckCircle, AlertCircle, Upload, FileText, Shield,
@@ -298,7 +299,17 @@ export default function SchoolRegistration() {
 
     setIsSubmitting(true)
     try {
-      const response = await api.post('/super-admin/schools', {
+      // Convert logo to base64 if present
+      let logoData = null
+      if (formData.documents.logo) {
+        const reader = new FileReader()
+        logoData = await new Promise((resolve) => {
+          reader.onload = (e) => resolve(e.target?.result)
+          reader.readAsDataURL(formData.documents.logo!)
+        })
+      }
+
+      const requestData = {
         schoolName: formData.schoolName,
         schoolCode: formData.schoolCode,
         subdomain: formData.schoolCode.toLowerCase(),
@@ -307,17 +318,37 @@ export default function SchoolRegistration() {
         principalName: formData.principal.name,
         principalEmail: formData.principal.email,
         principalPhone: formData.principal.phone,
+        adminName: formData.admin.name,
         adminEmail: formData.admin.email,
+        adminPhone: formData.admin.phone,
         addressLine1: formData.address.street,
         city: formData.address.city,
         state: formData.address.state,
         pincode: formData.address.pincode,
+        district: formData.address.district,
         schoolType: formData.schoolType,
         totalStudents: formData.totalStudents,
         totalTeachers: formData.totalTeachers,
-        establishmentYear: parseInt(formData.establishedYear),
-        selectedPackage: formData.selectedPackage
-      })
+        totalStaff: formData.totalStaff,
+        totalClassrooms: formData.totalClassrooms,
+        establishedYear: formData.establishedYear,
+        selectedPackage: formData.selectedPackage,
+        mediumOfInstruction: formData.mediumOfInstruction,
+        classesOffered: formData.classesOffered,
+        hasLibrary: formData.hasLibrary,
+        hasLaboratory: formData.hasLaboratory,
+        hasComputerLab: formData.hasComputerLab,
+        hasPlayground: formData.hasPlayground,
+        hasAuditorium: formData.hasAuditorium,
+        hasMedicalRoom: formData.hasMedicalRoom,
+        hasCanteen: formData.hasCanteen,
+        hasTransport: formData.hasTransport,
+        logo: logoData
+      }
+      
+      console.log('Sending registration data:', { ...requestData, logo: logoData ? 'BASE64_DATA_PRESENT' : 'NO_LOGO' })
+      
+      const response = await api.post('/super-admin/schools', requestData)
 
       setSubmitSuccess(true)
       setCurrentStep(6)
@@ -428,6 +459,61 @@ export default function SchoolRegistration() {
                   onChange={(e) => setFormData(prev => ({ ...prev, affiliationNumber: e.target.value }))}
                   placeholder="Board affiliation number"
                 />
+              </div>
+
+              <div className="md:col-span-2">
+                <Label htmlFor="logo">School Logo</Label>
+                <div className="mt-2">
+                  <input
+                    id="logo"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        // Validate file size (max 2MB)
+                        if (file.size > 2 * 1024 * 1024) {
+                          setErrors(prev => ({ ...prev, logo: 'Logo file size must be less than 2MB' }))
+                          return
+                        }
+                        
+                        // Validate file type
+                        if (!file.type.startsWith('image/')) {
+                          setErrors(prev => ({ ...prev, logo: 'Please select a valid image file' }))
+                          return
+                        }
+                        
+                        // Clear any previous errors
+                        setErrors(prev => ({ ...prev, logo: '' }))
+                        
+                        setFormData(prev => ({
+                          ...prev,
+                          documents: { ...prev.documents, logo: file }
+                        }))
+                        
+                        toast.success('Logo uploaded successfully', `${file.name} has been selected as school logo`)
+                      }
+                    }}
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Upload school logo (PNG, JPG, max 2MB)</p>
+                  {errors.logo && <p className="text-red-500 text-xs mt-1">{errors.logo}</p>}
+                  {formData.documents.logo && (
+                    <div className="mt-2 flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-200">
+                        <img 
+                          src={URL.createObjectURL(formData.documents.logo)} 
+                          alt="Logo preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Upload className="h-4 w-4 text-green-600" />
+                        <span className="text-sm text-green-600">{formData.documents.logo.name}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

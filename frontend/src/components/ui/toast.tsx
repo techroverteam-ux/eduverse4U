@@ -75,26 +75,26 @@ export function Toaster() {
   }
 
   return (
-    <div className="fixed top-6 right-6 z-[9999] space-y-2 max-w-sm">
+    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[9999] space-y-2">
       {toastList.map((toast) => (
         <div
           key={toast.id}
-          className={`w-full border rounded-lg p-4 shadow-lg ${getStyles(toast.type)} transform transition-all duration-300 ease-in-out animate-in slide-in-from-right-5`}
+          className={`min-w-[300px] max-w-[500px] w-auto border rounded-lg p-4 shadow-lg ${getStyles(toast.type)} transform transition-all duration-300 ease-in-out animate-in slide-in-from-right-5`}
         >
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 mt-0.5">
               {getIcon(toast.type)}
             </div>
-            <div className="ml-3 w-0 flex-1">
-              <p className="text-sm font-medium text-gray-900">{toast.title}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 leading-5">{toast.title}</p>
               {toast.message && (
-                <p className="mt-1 text-sm text-gray-500">{toast.message}</p>
+                <p className="mt-1 text-sm text-gray-600 leading-5">{toast.message}</p>
               )}
             </div>
-            <div className="ml-4 flex-shrink-0 flex">
+            <div className="flex-shrink-0">
               <button
                 onClick={() => removeToast(toast.id)}
-                className="inline-flex text-gray-400 hover:text-gray-600"
+                className="inline-flex text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
