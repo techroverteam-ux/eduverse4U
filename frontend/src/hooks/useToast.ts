@@ -111,10 +111,6 @@ export const useSchoolToast = (): SchoolToastMessages => {
 
 // General purpose toast utilities
 export const useToast = () => {
-  const showLoadingToast = (message: string) => {
-    return toast.loading('Processing...', message)
-  }
-
   const showSuccessToast = (title: string, message?: string) => {
     toast.success(title, message)
   }
@@ -131,10 +127,7 @@ export const useToast = () => {
     toast.info(title, message)
   }
 
-
-
   return {
-    showLoadingToast,
     showSuccessToast,
     showErrorToast,
     showWarningToast,
